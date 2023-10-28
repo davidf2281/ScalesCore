@@ -20,7 +20,7 @@ public protocol ReadingProvider: AnyObject {
 
 public protocol Display {
     init(width: CGFloat, height: CGFloat)
-    var font: Font { get set }
+    var font: Font? { get set }
     func drawText(_ text: String, x: CGFloat, y: CGFloat)
 }
 
