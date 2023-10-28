@@ -9,22 +9,8 @@ import Foundation
 
 public protocol Font {}
 
-public protocol ReadingProviderDelegate {
-    func didGetReading(_ reading: Float)
-}
-
-public protocol ReadingProvider: AnyObject {
-    var delegate: ReadingProviderDelegate? { get set }
-    func start()
-}
-
-public protocol Display {
-    init(width: CGFloat, height: CGFloat)
-    var font: Font? { get set }
-    func drawText(_ text: String, x: CGFloat, y: CGFloat)
-}
-
 public struct ReadingProcessor: ReadingProviderDelegate {
+    
     let readingProvider: ReadingProvider
     let display: Display
     
@@ -34,6 +20,7 @@ public struct ReadingProcessor: ReadingProviderDelegate {
         self.readingProvider.delegate = self
     }
     
+    // MARK: ReadingProviderDelegate
     public func didGetReading(_ reading: Float) {
         self.display.drawText(String(reading), x: 0, y: 0)
     }
