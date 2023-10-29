@@ -20,7 +20,18 @@ public struct Coordinator: SensorDelegate {
     
     // MARK: SensorDelegate
     public func didGetReading(_ reading: Float) {
-        let drawTextPayload = DrawTextPayload(string: String(reading), point: .zero, font: .system)
+        let drawTextPayload = DrawTextPayload(string: String(reading), point: .zero, font: .system, color: .white)
         self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     }
+}
+
+public protocol DataStore {
+    associatedtype SensorOutput
+    func save(_ reading: SensorOutput) async throws
+    func retrieve(count: Int) async throws -> [SensorOutput]
+}
+
+struct StoredReading<T> {
+    let reading: T
+    let date: Date
 }
