@@ -19,7 +19,7 @@ public class GraphicsContext {
     private var commandQueue: [Command] = []
     private let display: Display
     
-    init(display: Display) {
+    public init(display: Display) {
         self.display = display
     }
     
