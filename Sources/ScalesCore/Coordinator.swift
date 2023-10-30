@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Coordinator: SensorDelegate {
+public class Coordinator {
     
     let sensor: Sensor
     let graphicsContext: GraphicsContext
@@ -17,21 +17,12 @@ public struct Coordinator: SensorDelegate {
         self.graphicsContext = graphicsContext
         self.sensor.delegate = self
     }
+}
+
+extension Coordinator: SensorDelegate {
     
-    // MARK: SensorDelegate
     public func didGetReading(_ reading: Float) {
         let drawTextPayload = DrawTextPayload(string: String(reading), point: .zero, font: .system, color: .white)
         self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     }
-}
-
-public protocol DataStore {
-    associatedtype SensorOutput
-    func save(_ reading: SensorOutput) async throws
-    func retrieve(count: Int) async throws -> [SensorOutput]
-}
-
-struct StoredReading<T> {
-    let reading: T
-    let date: Date
 }
