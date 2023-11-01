@@ -33,11 +33,13 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         
         let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .zero, font: .system, color: .white)
         self.graphicsContext.queueCommand(.drawText(drawTextPayload))
+    
+        let drawLinesPayload1 = DrawLinesPayload(lines: [
+            Line(start: .init(x: 0, y: 0.25), end: .init(x: 1, y: 0.35))
+        ], width: 2, color: .white)
         
-        let drawLinesPayload = DrawLinesPayload(lines: [Line(start: .init(x: 0, y: 0), end: .init(x: 0.5, y: 0.5))], width: 2, color: .white)
-        
-        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload))
-        
+        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
+
         self.graphicsContext.render()
     }
 }
