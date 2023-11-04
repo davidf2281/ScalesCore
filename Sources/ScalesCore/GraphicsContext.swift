@@ -76,7 +76,6 @@ private extension Line {
         let dy = -abs(y1 - y0)
         let sy = y0 < y1 ? 1 : -1
         var error = dx + dy
-        
         while true {
             buffer.plotPixel(x0, y0, color: color)
             if x0 == x1 && y0 == y1 { break }
