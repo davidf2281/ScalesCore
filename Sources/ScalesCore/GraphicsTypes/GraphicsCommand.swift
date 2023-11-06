@@ -6,14 +6,14 @@ public enum GraphicsCommand {
     case drawLines(DrawLinesPayload)
 }
 
+protocol CommandPayload {}
+
 public struct DrawTextPayload: CommandPayload {
     let string: String
     let point: CGPoint
     let font: Font
     let color: Color24
 }
-
-protocol CommandPayload {}
 
 public struct DrawLinesPayload: CommandPayload {
     
