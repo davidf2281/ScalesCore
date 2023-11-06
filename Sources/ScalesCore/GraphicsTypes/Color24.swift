@@ -16,9 +16,9 @@ public struct Color24 {
     }
     
     public var packed565: UInt16 {
-        let red5 =   UInt16(self.red   & 0b11111000)
-        let green6 = UInt16(self.green & 0b11111100) >> 5
-        let blue5 =  UInt16(self.blue  & 0b11111000) >> 11
+        let red5 =   UInt16(self.red   & 0b11111000) << 8
+        let green6 = UInt16(self.green & 0b11111100) << 3
+        let blue5 =  UInt16(self.blue  & 0b11111000) >> 3
         return red5 | green6 | blue5
     }
 }
