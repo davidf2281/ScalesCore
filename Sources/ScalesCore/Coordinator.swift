@@ -41,7 +41,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         
         self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
-        self.graphicsContext.render()        
+        self.graphicsContext.render()
     }
     
     struct Colors: IteratorProtocol {
@@ -53,10 +53,12 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         let colors: [Color24] = [.red, .green, .white, .blue]
 
         mutating func next() -> Color24? {
-            defer {
-                index = (index == colors.endIndex) ? 0 : index + 1
+            if index == colors.endIndex {
+                index = 0
             }
             
+            let color = colors[index]
+            index += 1
             return colors[index]
         }
     }
