@@ -42,5 +42,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
         self.graphicsContext.render()
+        
+        self.toggle.toggle()
     }
 }
