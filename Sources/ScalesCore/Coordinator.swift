@@ -17,6 +17,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.sensor.start()
     }
 
+    var toggle = false
     public func didGetReading(_ reading: T) {
         do {
             try self.readingStore.save(reading)
@@ -28,13 +29,15 @@ public class Coordinator<U: Sensor>: SensorDelegate {
 //        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .zero, font: .system, color: .white)
 //        self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     
+        let color: Color24 = toggle ? .red : .white
+        
         let drawLinesPayload1 = DrawLinesPayload(lines: [
             Line(start: .init(x: 0.0, y: 0.0), end: .init(x: 1.0, y: 1.0)),
             Line(start: .init(x: 0.0, y: 1.0), end: .init(x: 1.0, y: 0.0)),
             Line(start: .init(x: 0.5, y: 0.0), end: .init(x: 0.5, y: 1.0)),
             Line(start: .init(x: 0.0, y: 0.5), end: .init(x: 1.0, y: 0.5))
 
-        ], width: 2, color: .white)
+        ], width: 2, color: color)
         
         self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
