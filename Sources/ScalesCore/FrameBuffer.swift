@@ -1,6 +1,4 @@
 
-import Foundation
-
 public class FrameBuffer {
     
     let width: Int

@@ -1,6 +1,4 @@
 
-import Foundation
-
 public class Coordinator<U: Sensor>: SensorDelegate {
 
     public typealias T = U.T
@@ -32,11 +30,10 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     
         
         let drawLinesPayload1 = DrawLinesPayload(lines: [
-            Line(start: .init(x: 0.0, y: 0.0), end: .init(x: 1.0, y: 1.0)),
-            Line(start: .init(x: 0.0, y: 1.0), end: .init(x: 1.0, y: 0.0)),
-            Line(start: .init(x: 0.5, y: 0.0), end: .init(x: 0.5, y: 1.0)),
-            Line(start: .init(x: 0.0, y: 0.5), end: .init(x: 1.0, y: 0.5))
-
+            Line(0.0, 0.0, 1.0, 1.0),
+            Line(0.0, 1.0, 1.0, 0.0),
+            Line(0.5, 0.0, 0.5, 1.0),
+            Line(0.0, 0.5, 1.0, 0.5)
         ], width: 2, color: colors.next()!)
         
         self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))

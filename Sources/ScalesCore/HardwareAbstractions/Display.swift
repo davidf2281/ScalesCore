@@ -1,6 +1,4 @@
 
-import Foundation
-
 public protocol Display {
     var width: Int { get }
     var height: Int { get }

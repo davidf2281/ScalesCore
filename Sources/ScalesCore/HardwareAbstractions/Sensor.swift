@@ -1,6 +1,4 @@
 
-import Foundation
-
 public protocol Sensor<T>: AnyObject {
     associatedtype T: SensorOutput
     var delegate: (any SensorDelegate<T>)? { get set }
