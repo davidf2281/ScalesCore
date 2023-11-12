@@ -5,14 +5,13 @@ public class FrameBuffer {
     
     let width: Int
     let height: Int
-    private let pixelCount: Int
+    
     public private(set) var pixels: [Color24]
     
     init(width: Int, height: Int) {
         self.width = width
         self.height = height
-        self.pixelCount = width * height
-        self.pixels = Array(repeating: .black, count: self.pixelCount)
+        self.pixels = Array(repeating: .black, count: width * height)
     }
     
     func plotPixel(_ x: Int, _ y: Int, color: Color24) {
