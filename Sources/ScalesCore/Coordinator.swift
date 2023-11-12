@@ -59,7 +59,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
             
             let color = colors[index]
             index += 1
-            return colors[index]
+            return color
         }
     }
 }
