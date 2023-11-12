@@ -17,7 +17,8 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.sensor.start()
     }
 
-    var toggle = false
+    var colors = Colors()
+    
     public func didGetReading(_ reading: T) {
         do {
             try self.readingStore.save(reading)
@@ -29,7 +30,6 @@ public class Coordinator<U: Sensor>: SensorDelegate {
 //        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .zero, font: .system, color: .white)
 //        self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     
-        var colors = Colors()
         
         let drawLinesPayload1 = DrawLinesPayload(lines: [
             Line(start: .init(x: 0.0, y: 0.0), end: .init(x: 1.0, y: 1.0)),
