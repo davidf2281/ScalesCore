@@ -38,6 +38,8 @@ public class GraphicsContext {
         }
         
         self.display.showFrame(self.frameBuffer)
+        
+        self.commandQueue = []
     }
 }
 
