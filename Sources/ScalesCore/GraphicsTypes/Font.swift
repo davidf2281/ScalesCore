@@ -14,6 +14,7 @@ public struct Font {
         
         var allLines: [Line] = []
         var previousGlyph: Glyph? = nil
+        var offsetAccumulator: Double = 0
         for character in string {
             
             let offset: Double
@@ -24,11 +25,13 @@ public struct Font {
                 offset = 0
             }
             
+            offsetAccumulator += offset + 1
+            
             guard let glyph = character.glyphName?.glyph else {
                 continue
             }
             
-            let lines = glyph.lines.offset(by: .init(offset + 1, 0))
+            let lines = glyph.lines.offset(by: .init(offsetAccumulator, 0))
             
             allLines += lines
             
