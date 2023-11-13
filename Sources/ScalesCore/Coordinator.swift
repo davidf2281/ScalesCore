@@ -28,15 +28,14 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .init(0, 0.5), font: .system, color: .red)
         self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     
-//        
-//        let drawLinesPayload1 = DrawLinesPayload(lines: [
-//            Line(0.0, 0.0, 1.0, 1.0),
-//            Line(0.0, 1.0, 1.0, 0.0),
-//            Line(0.5, 0.0, 0.5, 1.0),
-//            Line(0.0, 0.5, 1.0, 0.5)
-//        ], width: 2, color: colors.next()!)
-//        
-//        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
+        let drawLinesPayload1 = DrawLinesPayload(lines: [
+            Line(0.05, 0.05, 0.95, 0.05),
+            Line(0.95, 0.05, 0.95, 0.95),
+            Line(0.95, 0.95, 0.05, 0.95),
+            Line(0.05, 0.95, 0.05, 0.05)
+        ], width: 2, color: .white)
+        
+        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
         self.graphicsContext.render()
     }
