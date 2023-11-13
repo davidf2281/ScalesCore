@@ -171,10 +171,10 @@ public struct Font {
                     
                 case .dot:
                         .init(name: self,
-                              lines:   [Line(0, 0, 1, 0),
-                                        Line(1, 0, 1, 1),
-                                        Line(1, 1, 0, 1),
-                                        Line(0, 1, 0, 0)])
+                              lines:   [Line(0, 0, 0.5, 0),
+                                        Line(0.5, 0, 0.5, 0.5),
+                                        Line(0.5, 0.5, 0, 0.5),
+                                        Line(0, 0.5, 0, 0)])
             }
         }
     }
