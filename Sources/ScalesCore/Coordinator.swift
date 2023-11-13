@@ -25,7 +25,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
             print("Error saving ")
         }
         
-        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .init(0, 0.5), font: .system, color: .red)
+        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .init(0.075, 0.5), font: .system, color: .red)
         self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     
         let drawLinesPayload1 = DrawLinesPayload(lines: [
