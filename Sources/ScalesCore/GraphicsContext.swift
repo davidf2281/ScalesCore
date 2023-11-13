@@ -16,6 +16,9 @@ public class GraphicsContext {
     }
     
     public func render() {
+        
+        self.frameBuffer.clear()
+        
         for command in commandQueue {
             switch command {
                 case .drawText(let payload):

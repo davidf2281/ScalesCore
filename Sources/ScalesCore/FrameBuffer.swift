@@ -12,6 +12,11 @@ public class FrameBuffer {
         self.pixels = Array(repeating: .black, count: width * height)
     }
     
+    func clear() {
+        // TODO: Optimise
+        self.pixels = Array(repeating: .black, count: width * height)
+    }
+    
     func plotPixel(_ x: Int, _ y: Int, color: Color24) {
         pixels[index(for: x, y)] = color
     }
