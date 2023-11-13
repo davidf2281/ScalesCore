@@ -18,8 +18,14 @@ public class GraphicsContext {
     public func render() {
         for command in commandQueue {
             switch command {
-                case .drawText(_):
-                    break // TODO: Implement me
+                case .drawText(let payload):
+                    guard let lines = payload.font.linesForString(payload.string)?.offset(by: payload.point) else {
+                        return
+                    }
+                    
+                    for line in lines {
+                        line.draw(width: display.width, height: display.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
+                    }
                     
                 case .drawLines(let payload):
                     for line in payload.lines {

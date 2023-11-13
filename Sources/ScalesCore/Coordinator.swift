@@ -25,18 +25,18 @@ public class Coordinator<U: Sensor>: SensorDelegate {
             print("Error saving ")
         }
         
-//        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .zero, font: .system, color: .white)
-//        self.graphicsContext.queueCommand(.drawText(drawTextPayload))
+        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .init(160, 120), font: .system, color: .white)
+        self.graphicsContext.queueCommand(.drawText(drawTextPayload))
     
-        
-        let drawLinesPayload1 = DrawLinesPayload(lines: [
-            Line(0.0, 0.0, 1.0, 1.0),
-            Line(0.0, 1.0, 1.0, 0.0),
-            Line(0.5, 0.0, 0.5, 1.0),
-            Line(0.0, 0.5, 1.0, 0.5)
-        ], width: 2, color: colors.next()!)
-        
-        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
+//        
+//        let drawLinesPayload1 = DrawLinesPayload(lines: [
+//            Line(0.0, 0.0, 1.0, 1.0),
+//            Line(0.0, 1.0, 1.0, 0.0),
+//            Line(0.5, 0.0, 0.5, 1.0),
+//            Line(0.0, 0.5, 1.0, 0.5)
+//        ], width: 2, color: colors.next()!)
+//        
+//        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
         self.graphicsContext.render()
     }
