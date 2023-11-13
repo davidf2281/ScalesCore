@@ -33,7 +33,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
             Line(0.95, 0.05, 0.95, 0.95),
             Line(0.95, 0.95, 0.05, 0.95),
             Line(0.05, 0.95, 0.05, 0.05)
-        ], width: 2, color: .white)
+        ], width: 2, color: .gray)
         
         self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 

@@ -13,6 +13,10 @@ public struct Color24 {
         Self.init(red: 255, green: 255, blue: 255)
     }
     
+    public static var gray: Self {
+        Self.init(red: 128, green: 128, blue: 128)
+    }
+    
     public static var red: Self {
         Self.init(red: 255, green: 0, blue: 0)
     }
