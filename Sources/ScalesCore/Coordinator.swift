@@ -5,12 +5,13 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     let sensor: U
     let graphicsContext: GraphicsContext
     let readingStore: RAMDataStore<T>
-    
-    public init(sensor: U, graphicsContext: GraphicsContext) {
+    let display: Display
+
+    public init(sensor: U, display: Display) {
         self.sensor = sensor
-        self.graphicsContext = graphicsContext
+        self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
         self.readingStore = RAMDataStore<T>()
-        
+        self.display = display
         self.sensor.delegate = self
         self.sensor.start()
     }
@@ -38,6 +39,8 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
         self.graphicsContext.render()
+        
+        self.display.showFrame(self.graphicsContext.frameBuffer)
     }
     
     struct Colors: IteratorProtocol {

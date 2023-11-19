@@ -2,13 +2,11 @@
 public class GraphicsContext {
     
     private var commandQueue: [GraphicsCommand] = []
-    private let display: Display
-    private var frameBuffer: FrameBuffer
-    
-    public init(display: Display) {
-        self.display = display
-        self.frameBuffer = FrameBuffer(width: display.resolution.width, height: display.resolution.height)
-        self.display.showFrame(self.frameBuffer)
+    public private(set) var frameBuffer: FrameBuffer
+    private let size: Size
+    public init(size: Size) {
+        self.size = size
+        self.frameBuffer = FrameBuffer(width: size.width, height: size.height)
     }
     
     func queueCommand(_ command: GraphicsCommand) {
@@ -27,18 +25,16 @@ public class GraphicsContext {
                     }
                     
                     for line in lines {
-                        line.draw(width: display.resolution.width, height: display.resolution.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
+                        line.draw(width: size.width, height: size.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
                     }
                     
                 case .drawLines(let payload):
                     for line in payload.lines {
-                        line.draw(width: display.resolution.width, height: display.resolution.height, color: payload.color, algorithm: payload.algorithm, buffer: &self.frameBuffer)
+                        line.draw(width: size.width, height: size.height, color: payload.color, algorithm: payload.algorithm, buffer: &self.frameBuffer)
                     }
             }
         }
-        
-        self.display.showFrame(self.frameBuffer)
-        
+                
         self.commandQueue = []
     }
 }

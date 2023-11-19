@@ -1,8 +1,10 @@
 
 public class FrameBuffer {
     
+    // TODO: Eliminate separate width and height properties in favour of Size.
     let width: Int
     let height: Int
+    var size: Size { .init(width: width, height: height) }
     
     public private(set) var pixels: [Color24]
     
