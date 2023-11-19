@@ -1,6 +1,5 @@
 
 public protocol Display {
-    var width: Int { get }
-    var height: Int { get }
+    var resolution: Size { get }
     func showFrame(_ frameBuffer: FrameBuffer)
 }
