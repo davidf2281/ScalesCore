@@ -7,7 +7,7 @@ public class GraphicsContext {
     
     public init(display: Display) {
         self.display = display
-        self.frameBuffer = FrameBuffer(width: display.width, height: display.height)
+        self.frameBuffer = FrameBuffer(width: display.resolution.width, height: display.resolution.height)
         self.display.showFrame(self.frameBuffer)
     }
     
@@ -27,12 +27,12 @@ public class GraphicsContext {
                     }
                     
                     for line in lines {
-                        line.draw(width: display.width, height: display.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
+                        line.draw(width: display.resolution.width, height: display.resolution.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
                     }
                     
                 case .drawLines(let payload):
                     for line in payload.lines {
-                        line.draw(width: display.width, height: display.height, color: payload.color, algorithm: payload.algorithm, buffer: &self.frameBuffer)
+                        line.draw(width: display.resolution.width, height: display.resolution.height, color: payload.color, algorithm: payload.algorithm, buffer: &self.frameBuffer)
                     }
             }
         }
