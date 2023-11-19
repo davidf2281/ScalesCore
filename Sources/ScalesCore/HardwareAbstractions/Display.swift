@@ -2,7 +2,6 @@
 public protocol Display {
     var width: Int { get }
     var height: Int { get }
-    static var supportedResolutions: [ScreenResolution] { get }
     func showFrame(_ frameBuffer: FrameBuffer)
 }
 
