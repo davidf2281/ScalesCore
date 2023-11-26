@@ -30,4 +30,19 @@ public class FrameBuffer {
     private func index(for x: Int, _ y: Int) -> Int {
         return width * y + x
     }
+    
+    /// Transpose our buffer array from a series of rows to a series of columns
+    public var swappedWidthForHeight: FrameBuffer {
+        let rotatedBuffer = FrameBuffer(width: self.size.height, height: self.size.width)
+        var newIndex = 0
+        for i in 0..<self.size.width {
+            for j in 1...self.size.height {
+                let oldIndex = (self.size.width * (self.size.height - j)) + i
+                rotatedBuffer.pixels[newIndex] = self.pixels[oldIndex]
+                newIndex += 1
+            }
+        }
+        
+        return rotatedBuffer
+    }
 }

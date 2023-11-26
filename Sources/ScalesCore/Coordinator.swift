@@ -40,7 +40,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
 
         self.graphicsContext.render()
         
-        self.display.showFrame(self.graphicsContext.frameBuffer)
+        self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
     }
     
     struct Colors: IteratorProtocol {
