@@ -1,16 +1,36 @@
 
 public struct Font {
-    static var system: Font {
-        return Self(size: 0.1)
+    let size: Double
+    private let typeFace: Typeface
+    
+    enum TypefaceName {
+        case system
     }
     
+    init(_ typeFaceName: TypefaceName, size: Double) {
+        self.size = size
+        switch typeFaceName {
+            case .system:
+                self.typeFace = System()
+        }
+    }
+    
+    func linesForString(_ string: String) -> [Line]? {
+        self.typeFace.linesForString(string, size: self.size)
+    }
+}
+
+public protocol Typeface {
+    func linesForString(_ string: String, size: Double) -> [Line]?
+}
+
+public struct System: Typeface {
+ 
     // All glyphs have line coords based on a 4 x 5 grid.
     // We normalize by scaling down to fit the y-height (ie max y height is 1.0)
     static let scaleToNormalize: Double = 1.0 / 5.0
     
-    public let size: Double
-    
-    public func linesForString(_ string: String) -> [Line]? {
+    public func linesForString(_ string: String, size: Double) -> [Line]? {
         
         var allLines: [Line] = []
         var previousGlyph: Glyph? = nil
@@ -41,7 +61,7 @@ public struct Font {
         // TODO: Optimize this double-scaling out
         return allLines
             .scaled(by: Self.scaleToNormalize)
-            .scaled(by: self.size)
+            .scaled(by: size)
     }
     
     struct Glyph {
@@ -210,7 +230,7 @@ extension Array where Element == Line {
 
 extension Character {
     
-    var glyphName: Font.GlyphName? {
+    var glyphName: System.GlyphName? {
         switch self {
             case "0":
                 return .zero
