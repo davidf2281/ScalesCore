@@ -34,12 +34,12 @@ public class FrameBuffer {
     /// Transpose our buffer array from a series of rows to a series of columns
     public var swappedWidthForHeight: FrameBuffer {
         let rotatedBuffer = FrameBuffer(width: self.size.height, height: self.size.width)
-        var newIndex = 0
+        var newIndex = self.pixels.count - 1
         for i in 0..<self.size.width {
             for j in 1...self.size.height {
                 let oldIndex = (self.size.width * (self.size.height - j)) + i
                 rotatedBuffer.pixels[newIndex] = self.pixels[oldIndex]
-                newIndex += 1
+                newIndex -= 1
             }
         }
         
