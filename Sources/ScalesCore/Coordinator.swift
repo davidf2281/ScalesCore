@@ -15,8 +15,6 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.sensor.delegate = self
         self.sensor.start()
     }
-
-    var colors = Colors()
     
     public func didGetReading(_ reading: T) {
         do {
@@ -28,37 +26,9 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         
         let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .init(0.075, 0.5), font: .init(.system, size: 0.2), color: .red)
         self.graphicsContext.queueCommand(.drawText(drawTextPayload))
-    
-        let drawLinesPayload1 = DrawLinesPayload(lines: [
-            Line(0.05, 0.05, 0.95, 0.05),
-            Line(0.95, 0.05, 0.95, 0.95),
-            Line(0.95, 0.95, 0.05, 0.95),
-            Line(0.05, 0.95, 0.05, 0.05)
-        ], width: 2, color: .gray)
-        
-        self.graphicsContext.queueCommand(.drawLines(drawLinesPayload1))
 
         self.graphicsContext.render()
         
         self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
-    }
-    
-    struct Colors: IteratorProtocol {
-        
-        typealias Element = Color24
-
-        private var index = 0
-        
-        let colors: [Color24] = [.red, .green, .white, .blue]
-
-        mutating func next() -> Color24? {
-            if index == colors.endIndex {
-                index = 0
-            }
-            
-            let color = colors[index]
-            index += 1
-            return color
-        }
     }
 }
