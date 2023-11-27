@@ -3,6 +3,7 @@ import Foundation
 
 public protocol DataStore {
     associatedtype SensorOutput
+    var totalReadingsCount: Int { get }
     func save(_ reading: SensorOutput) async throws
     func retrieve(count: Int) async throws -> [StoredReading<SensorOutput>]
 }
@@ -16,6 +17,10 @@ public struct StoredReading<T> {
 }
 
 public class RAMDataStore<T: SensorOutput>: DataStore {
+    
+    public var totalReadingsCount: Int {
+        self.readings.count
+    }
     
     private var readings: [StoredReading<T>] = []
     

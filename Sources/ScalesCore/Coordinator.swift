@@ -20,13 +20,15 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         do {
             try self.readingStore.save(reading)
         } catch {
-            assert(false)
-            print("Error saving ")
+            print("Error saving")
         }
         
-        let drawTextPayload = DrawTextPayload(string: reading.stringValue, point: .init(0.075, 0.5), font: .init(.system, size: 0.2), color: .red)
-        self.graphicsContext.queueCommand(.drawText(drawTextPayload))
+        let drawTemperaturePayload = DrawTextPayload(string: reading.stringValue, point: .init(0.075, 0.5), font: .init(.system, size: 0.2), color: .red)
+        self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
 
+        let drawReadingsCountPayload = DrawTextPayload(string: "\(self.readingStore.totalReadingsCount)", point: .init(0.075, 0.8), font: .init(.system, size: 0.1), color: .white)
+        self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
+        
         self.graphicsContext.render()
         
         self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
