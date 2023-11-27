@@ -23,7 +23,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
             print("Error saving")
         }
         
-        let drawTemperaturePayload = DrawTextPayload(string: reading.stringValue, point: .init(0.075, 0.5), font: .init(.system, size: 0.2), color: .red)
+        let drawTemperaturePayload = DrawTextPayload(string: reading.stringValue, point: .init(0.09, 0.5), font: .init(.system, size: 0.2), color: .red)
         self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
 
         let drawReadingsCountPayload = DrawTextPayload(string: "\(self.readingStore.totalReadingsCount)", point: .init(0.1, 0.05), font: .init(.system, size: 0.05), color: .gray)
