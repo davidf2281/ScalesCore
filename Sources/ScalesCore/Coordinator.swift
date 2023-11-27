@@ -26,7 +26,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         let drawTemperaturePayload = DrawTextPayload(string: reading.stringValue, point: .init(0.075, 0.5), font: .init(.system, size: 0.2), color: .red)
         self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
 
-        let drawReadingsCountPayload = DrawTextPayload(string: "\(self.readingStore.totalReadingsCount)", point: .init(0.1, 0.3), font: .init(.system, size: 0.005), color: .gray)
+        let drawReadingsCountPayload = DrawTextPayload(string: "\(self.readingStore.totalReadingsCount)", point: .init(0.1, 0.3), font: .init(.system, size: 0.05), color: .gray)
         self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
         
         self.graphicsContext.render()
