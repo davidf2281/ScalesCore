@@ -1,6 +1,8 @@
 
-public class Coordinator<U: Sensor>: SensorDelegate {
+import Foundation
 
+public class Coordinator<U: Sensor>: SensorDelegate {
+    
     public typealias T = U.T
     let sensor: U
     let graphicsContext: GraphicsContext
@@ -14,6 +16,12 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.display = display
         self.sensor.delegate = self
         self.sensor.start()
+        
+        let currentDirectory = FileManager.default.currentDirectoryPath
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
+        
+        print("Current directory: \(currentDirectory)")
+        print("Home directory for current user: \(homeDirectory)")
     }
     
     public func didGetReading(_ reading: T) {
