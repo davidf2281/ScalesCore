@@ -1,6 +1,5 @@
 
 import Foundation
-import RealmSwift
 
 public protocol DataStore {
     associatedtype SensorOutput
@@ -17,15 +16,13 @@ public struct StoredReading<T> {
     }
 }
 
-public class RAMDataStore<T: SensorOutput>: Object, DataStore {
+public class RAMDataStore<T: SensorOutput>: DataStore {
     
     public var totalReadingsCount: Int {
         self.readings.count
     }
     
     private var readings: [StoredReading<T>] = []
-    
-    @Persisted var realmyThing: String
     
     public func save(_ reading: T) throws {
         self.readings.append(.init(reading: reading, date: nil))
