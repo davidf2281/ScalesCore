@@ -9,11 +9,15 @@ let package = Package(
      products: [
         .library(name: "ScalesCore", targets: ["ScalesCore"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/realm/realm-swift.git", branch: "master")
+    ],
     targets: [
         .target(
             name: "ScalesCore",
-            dependencies: []),
+            dependencies: [
+                .product(name: "RealmSwift", package: "realm-swift"),
+            ]),
         .testTarget(name: "ScalesCoreTests", dependencies: ["ScalesCore"])
     ],
     swiftLanguageVersions: [.v5]
