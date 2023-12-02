@@ -93,6 +93,7 @@ public struct System: Typeface {
         case eight
         case nine
         case dot
+        case dash
         
         fileprivate var glyph: Glyph {
             switch self {
@@ -195,6 +196,10 @@ public struct System: Typeface {
                                         Line(0.5, 0, 0.5, 0.5),
                                         Line(0.5, 0.5, 0, 0.5),
                                         Line(0, 0.5, 0, 0)])
+                    
+                case .dash:
+                        .init(name: self,
+                              lines:   [Line(0.2, 0.5, 0.8, 0.5)])
             }
         }
     }
@@ -254,6 +259,8 @@ extension Character {
                 return .nine
             case ".":
                 return .dot
+            case "-":
+                return .dash
                 
             default:
                 return nil
