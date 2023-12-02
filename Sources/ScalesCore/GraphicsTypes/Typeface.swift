@@ -199,7 +199,7 @@ public struct System: Typeface {
                     
                 case .dash:
                         .init(name: self,
-                              lines:   [Line(1, 2.5, 3, 2.5)])
+                              lines:   [Line(0.5, 2.5, 2.5, 2.5)])
             }
         }
     }
