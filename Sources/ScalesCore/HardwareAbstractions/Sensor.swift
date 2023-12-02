@@ -1,6 +1,6 @@
 
 public protocol Sensor<T>: AnyObject {
-    associatedtype T: SensorOutput
+    associatedtype T: SensorOutput, Comparable
     var delegate: (any SensorDelegate<T>)? { get set }
     func start()
 }
