@@ -1,5 +1,5 @@
 
-public protocol Sensor<T>: AnyObject {
+public protocol Sensor<T>: AnyObject, Codable {
     associatedtype T: SensorOutput, Comparable
     var outputType: SensorOutputType { get }
     var location: SensorLocation { get }
