@@ -1,5 +1,5 @@
 
-public protocol Sensor<T>: AnyObject, Codable {
+public protocol Sensor<T>: AnyObject {
     associatedtype T: SensorOutput, Comparable
     var outputType: SensorOutputType { get }
     var location: SensorLocation { get }
@@ -7,29 +7,29 @@ public protocol Sensor<T>: AnyObject, Codable {
     func start()
 }
 
-public enum TemperatureUnit: String, Codable {
+public enum TemperatureUnit: String {
     case celsius
 }
 
-public enum PressureUnit: String, Codable {
+public enum PressureUnit: String {
     case hPa
 }
 
-public enum HumidityUnit: String, Codable {
+public enum HumidityUnit: String {
     case rhd
 }
 
-public enum SensorLocation: Codable {
+public enum SensorLocation {
     case indoor(location: Location?)
     case outdoor(location: Location?)
 }
 
-public struct Location: Codable {
+public struct Location {
     let latitude: Double
     let longitude: Double
 }
 
-public enum SensorOutputType: Codable {
+public enum SensorOutputType {
     case temperature(unit: TemperatureUnit)
     case barometricPressure(unit: PressureUnit)
     case humidity(unit: HumidityUnit)
@@ -43,6 +43,5 @@ public protocol SensorOutput<T>: Sendable, Codable {
 
 public protocol SensorDelegate<T>: AnyObject {
     associatedtype T: SensorOutput
-    associatedtype U: Sensor
-    func didGetReading(_ output: T, sensor: U) async
+    func didGetReading(_ output: T) async
 }
