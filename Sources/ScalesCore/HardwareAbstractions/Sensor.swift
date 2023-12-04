@@ -41,7 +41,7 @@ public protocol SensorOutput<T>: Sendable, Codable {
     var stringValue: String { get }
 }
 
-public protocol SensorDelegate<T>: AnyObject, Codable {
+public protocol SensorDelegate<T>: AnyObject {
     associatedtype T: SensorOutput
     func didGetReading(_ output: T) async
 }
