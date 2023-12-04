@@ -2,15 +2,15 @@
 import Foundation
 
 protocol DataStore {
-    associatedtype SensorOutput
+    associatedtype T: SensorOutput
     var totalReadingsCount: Int { get }
     var availableCapacity: Float { get } // Value between 0 and 1
-    func save(_ reading: SensorOutput, date: Date) async throws
-    func retrieve(since: Date) async throws -> [StoredReading<SensorOutput>]
-    func retrieveLast() async -> StoredReading<SensorOutput>?
+    func save(_ reading: T, date: Date) async throws
+    func retrieve(since: Date) async throws -> [StoredReading<T>]
+    func retrieveLast() async -> StoredReading<T>?
 }
 
-struct StoredReading<T> {
+struct StoredReading<T: SensorOutput>: Codable {
     let reading: T
     let date: Date?
     var elementSizeBytesIncludingAlignment: Int {
@@ -27,7 +27,6 @@ import Foundation
 class HybridDataStore<T: SensorOutput>: DataStore {
   
     private let capacity: Int = 1000
-    private var saveTask: Task<T, Error>?
     
     var totalReadingsCount: Int {
         self.readings.count
@@ -45,11 +44,9 @@ class HybridDataStore<T: SensorOutput>: DataStore {
     }
     
     func save(_ reading: T, date: Date) async throws {
-        self.saveTask = Task { [weak self] in
-            let storedReading = StoredReading(reading: reading, date: date)
-            self?.readings.append(storedReading)
-            return reading
-        }
+        let storedReading = StoredReading(reading: reading, date: date)
+        self.readings.append(storedReading)
+        serializeToDisk()
     }
     
     func retrieve(since: Date) async throws -> [StoredReading<T>] {
@@ -58,5 +55,14 @@ class HybridDataStore<T: SensorOutput>: DataStore {
     
     func retrieveLast() -> StoredReading<T>? {
         return self.readings.last
+    }
+    
+    private func serializeToDisk() {
+        let encoder = JSONEncoder()
+        let result = try? encoder.encode(self.readings)
+        if let result,
+           let string = String(data: result, encoding: .utf8) {
+            print(string)
+        }
     }
 }

@@ -5,7 +5,7 @@ public protocol Sensor<T>: AnyObject {
     func start()
 }
 
-public protocol SensorOutput<T>: Sendable {
+public protocol SensorOutput<T>: Sendable, Codable {
     associatedtype T
     var stringValue: String { get }
 }
