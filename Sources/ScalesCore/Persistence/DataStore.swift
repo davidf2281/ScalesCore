@@ -5,7 +5,7 @@ protocol DataStore {
     associatedtype SensorOutput
     var totalReadingsCount: Int { get }
     var availableCapacity: Float { get } // Value between 0 and 1
-    func save(_ reading: SensorOutput) async throws
+    func save(_ reading: SensorOutput, date: Date) async throws
     func retrieve(since: Date) async throws -> [StoredReading<SensorOutput>]
     func retrieveLast() async -> StoredReading<SensorOutput>?
 }
@@ -44,9 +44,9 @@ class HybridDataStore<T: SensorOutput>: DataStore {
         self.readings.reserveCapacity(capacity)
     }
     
-    func save(_ reading: T) async throws {
+    func save(_ reading: T, date: Date) async throws {
         self.saveTask = Task { [weak self] in
-            let storedReading = StoredReading(reading: reading, date: nil)
+            let storedReading = StoredReading(reading: reading, date: date)
             self?.readings.append(storedReading)
             return reading
         }

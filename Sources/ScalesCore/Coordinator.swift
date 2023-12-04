@@ -1,4 +1,6 @@
 
+import Foundation
+
 public class Coordinator<U: Sensor>: SensorDelegate {
 
     public typealias T = U.T
@@ -11,6 +13,13 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     private var min: T? = nil
 
     private var saveError = false
+    private var readingLastStoredDate: Date?
+    private var shouldStoreReading: Bool {
+        guard let readingLastStoredDate else {
+            return true
+        }
+        return -readingLastStoredDate.timeIntervalSinceNow >= 60
+    }
     
     public init(sensor: U, display: Display) {
         self.sensor = sensor
@@ -22,12 +31,17 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     }
     
     public func didGetReading(_ reading: T) async {
-        
-        do {
-            try await self.readingStore.save(reading)
-            self.saveError = false
-        } catch {
-            self.saveError = true
+                
+        if shouldStoreReading {
+            print("Storing reading")
+            do {
+                let now = Date()
+                try await self.readingStore.save(reading, date: now)
+                self.readingLastStoredDate = now
+                self.saveError = false
+            } catch {
+                self.saveError = true
+            }
         }
         
         if max == nil {
@@ -69,5 +83,11 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.graphicsContext.render()
         
         self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+    }
+}
+
+fileprivate extension Timer {
+    var isInValid: Bool {
+        self.isValid
     }
 }
