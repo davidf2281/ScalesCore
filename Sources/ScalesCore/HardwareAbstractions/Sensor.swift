@@ -5,12 +5,12 @@ public protocol Sensor<T>: AnyObject {
     func start()
 }
 
-public protocol SensorOutput<T> {
+public protocol SensorOutput<T>: Sendable {
     associatedtype T
     var stringValue: String { get }
 }
 
 public protocol SensorDelegate<T>: AnyObject {
     associatedtype T: SensorOutput
-    func didGetReading(_ output: T)
+    func didGetReading(_ output: T) async
 }

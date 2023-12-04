@@ -1,14 +1,16 @@
 
 import Foundation
 
-public protocol DataStore {
+protocol DataStore {
     associatedtype SensorOutput
     var totalReadingsCount: Int { get }
+    var availableCapacity: Float { get } // Value between 0 and 1
     func save(_ reading: SensorOutput) async throws
-    func retrieve(count: Int) async throws -> [StoredReading<SensorOutput>]
+    func retrieve(since: Date) async throws -> [StoredReading<SensorOutput>]
+    func retrieveLast() async -> StoredReading<SensorOutput>?
 }
 
-public struct StoredReading<T> {
+struct StoredReading<T> {
     let reading: T
     let date: Date?
     var elementSizeBytesIncludingAlignment: Int {
@@ -16,19 +18,45 @@ public struct StoredReading<T> {
     }
 }
 
-public class RAMDataStore<T: SensorOutput>: DataStore {
+enum DataStoreError: Error {
+    case full
+}
+
+import Foundation
+
+class HybridDataStore<T: SensorOutput>: DataStore {
+  
+    private let capacity: Int = 1000
+    private var saveTask: Task<T, Error>?
     
-    public var totalReadingsCount: Int {
+    var totalReadingsCount: Int {
         self.readings.count
     }
     
-    private var readings: [StoredReading<T>] = []
-    
-    public func save(_ reading: T) throws {
-        self.readings.append(.init(reading: reading, date: nil))
+    var availableCapacity: Float {
+        Float(totalReadingsCount) / Float(capacity)
     }
     
-    public func retrieve(count: Int) throws -> [StoredReading<T>] {
-        self.readings.suffix(count)
+    private var readings: [StoredReading<T>]
+    
+    init() {
+        self.readings = []
+        self.readings.reserveCapacity(capacity)
+    }
+    
+    func save(_ reading: T) async throws {
+        self.saveTask = Task { [weak self] in
+            let storedReading = StoredReading(reading: reading, date: nil)
+            self?.readings.append(storedReading)
+            return reading
+        }
+    }
+    
+    func retrieve(since: Date) async throws -> [StoredReading<T>] {
+        return []
+    }
+    
+    func retrieveLast() -> StoredReading<T>? {
+        return self.readings.last
     }
 }

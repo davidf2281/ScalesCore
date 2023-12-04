@@ -4,26 +4,30 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     public typealias T = U.T
     let sensor: U
     let graphicsContext: GraphicsContext
-    let readingStore: RAMDataStore<T>
+    let readingStore: HybridDataStore<T>
     let display: Display
 
     private var max: T? = nil
     private var min: T? = nil
 
+    private var saveError = false
+    
     public init(sensor: U, display: Display) {
         self.sensor = sensor
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = RAMDataStore<T>()
+        self.readingStore = HybridDataStore<T>()
         self.display = display
         self.sensor.delegate = self
         self.sensor.start()
     }
     
-    public func didGetReading(_ reading: T) {
+    public func didGetReading(_ reading: T) async {
+        
         do {
-            try self.readingStore.save(reading)
+            try await self.readingStore.save(reading)
+            self.saveError = false
         } catch {
-            print("Error saving")
+            self.saveError = true
         }
         
         if max == nil {
