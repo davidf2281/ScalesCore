@@ -77,7 +77,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
     }
     
     private func serializeToDisk() async throws {
-        let archivedReadings = ArchivedReadings(items: self.readings, outputType: self.sensor.outputType, location: self.sensor.location, name: self.sensor.name)
+        let archivedReadings = ArchivedReadings(name: self.sensor.name, outputType: self.sensor.outputType, location: self.sensor.location, items: self.readings)
         try await persister.persist(items: archivedReadings)
     }
 }
