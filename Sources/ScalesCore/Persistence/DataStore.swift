@@ -11,9 +11,13 @@ protocol DataStore: AnyActor {
     func retrieveLast() async -> StoredReading<T>?
 }
 
-struct StoredReading<T: SensorOutput>: Codable {
-    let reading: T
-    let date: Date?
+protocol Dateable {
+    var date: Date { get }
+}
+
+struct StoredReading<T: SensorOutput>: Codable, Dateable {
+    let value: T
+    let date: Date
     var elementSizeBytesIncludingAlignment: Int {
         MemoryLayout<Self>.stride
     }
@@ -23,8 +27,8 @@ enum DataStoreError: Error {
     case full
 }
 
-struct ArchivedReadings<T: SensorOutput, U: Sensor>: Codable {
-    let readings: [StoredReading<T>]
+struct ArchivedReadings<T: SensorOutput, U: Sensor>: Persistable {
+    let items: [StoredReading<T>]
     let sensor: U
 }
 
@@ -35,6 +39,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
     private let sensor: U
     
     private let capacity: Int = 1000
+    private let persister: Persister<ArchivedReadings<T, U>>
     
     var totalReadingsCount: Int {
         self.readings.count
@@ -50,14 +55,15 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
         self.sensor = sensor
         self.readings = []
         self.readings.reserveCapacity(capacity)
+        self.persister = Persister()
     }
     
     func save(_ reading: T, date: Date) async throws {
-        let storedReading = StoredReading(reading: reading, date: date)
+        let storedReading = StoredReading(value: reading, date: date)
         
         readings.append(storedReading)
         
-        serializeToDisk()
+        try await serializeToDisk()
     }
     
     func retrieve(since: Date) async throws -> [StoredReading<T>] {
@@ -68,10 +74,26 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
         return nil
     }
     
-    private func serializeToDisk() {
-        let archivedReadings = ArchivedReadings(readings: self.readings, sensor: self.sensor)
+    private func serializeToDisk() async throws {
+        let archivedReadings = ArchivedReadings(items: self.readings, sensor: self.sensor)
+        try await persister.persist(items: archivedReadings)
+    }
+}
+
+protocol Persistable: Codable {
+    associatedtype T: Codable, Dateable
+    var items: [T] { get }
+}
+
+protocol Persisting {
+    associatedtype T: Persistable
+    func persist(items: T) async throws
+}
+
+actor Persister<T: Persistable>: Persisting {
+    func persist(items: T) async throws {
         let encoder = JSONEncoder()
-        let result = try? encoder.encode(archivedReadings)
+        let result = try? encoder.encode(items)
         if let result,
            let string = String(data: result, encoding: .utf8) {
             print(string)
