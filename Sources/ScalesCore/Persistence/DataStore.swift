@@ -1,19 +1,18 @@
 
 import Foundation
 
-protocol DataStore {
+protocol DataStore: AnyActor {
     associatedtype T: SensorOutput
     associatedtype U: Sensor
-    var totalReadingsCount: Int { get }
-    var availableCapacity: Float { get } // Value between 0 and 1
-    func save(_ reading: T, sensor: U, date: Date) async throws
-    func retrieve(since: Date) async throws -> [StoredReading<T, U>]
-    func retrieveLast() async -> StoredReading<T, U>?
+    var totalReadingsCount: Int { get async }
+    var availableCapacity: Float { get async } // Value between 0 and 1
+    func save(_ reading: T, date: Date) async throws
+    func retrieve(since: Date) async throws -> [StoredReading<T>]
+    func retrieveLast() async -> StoredReading<T>?
 }
 
-struct StoredReading<T: SensorOutput, U: Sensor>: Codable {
+struct StoredReading<T: SensorOutput>: Codable {
     let reading: T
-    let sensor: U
     let date: Date?
     var elementSizeBytesIncludingAlignment: Int {
         MemoryLayout<Self>.stride
@@ -24,10 +23,17 @@ enum DataStoreError: Error {
     case full
 }
 
+struct ArchivedReadings<T: SensorOutput, U: Sensor>: Codable {
+    let readings: [StoredReading<T>]
+    let sensor: U
+}
+
 import Foundation
 
-class HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
+actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
   
+    private let sensor: U
+    
     private let capacity: Int = 1000
     
     var totalReadingsCount: Int {
@@ -38,30 +44,34 @@ class HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
         Float(totalReadingsCount) / Float(capacity)
     }
     
-    private var readings: [StoredReading<T, U>]
+    private var readings: [StoredReading<T>]
     
-    init() {
+    init(sensor: U) {
+        self.sensor = sensor
         self.readings = []
         self.readings.reserveCapacity(capacity)
     }
     
-    func save(_ reading: T, sensor: U, date: Date) async throws {
-        let storedReading = StoredReading(reading: reading, sensor: sensor, date: date)
-        self.readings.append(storedReading)
+    func save(_ reading: T, date: Date) async throws {
+        let storedReading = StoredReading(reading: reading, date: date)
+        
+        readings.append(storedReading)
+        
         serializeToDisk()
     }
     
-    func retrieve(since: Date) async throws -> [StoredReading<T, U>] {
+    func retrieve(since: Date) async throws -> [StoredReading<T>] {
         return []
     }
     
-    func retrieveLast() -> StoredReading<T, U>? {
-        return self.readings.last
+    func retrieveLast() async -> StoredReading<T>? {
+        return nil
     }
     
     private func serializeToDisk() {
+        let archivedReadings = ArchivedReadings(readings: self.readings, sensor: self.sensor)
         let encoder = JSONEncoder()
-        let result = try? encoder.encode(self.readings)
+        let result = try? encoder.encode(archivedReadings)
         if let result,
            let string = String(data: result, encoding: .utf8) {
             print(string)

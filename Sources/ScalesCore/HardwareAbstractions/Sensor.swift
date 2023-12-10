@@ -1,6 +1,6 @@
 
-public protocol Sensor<T>: AnyObject, Codable {
-    associatedtype T: SensorOutput, Comparable
+public protocol Sensor<T>: AnyObject, Codable, Hashable, Identifiable {
+    associatedtype T: SensorOutput
     var outputType: SensorOutputType { get }
     var location: SensorLocation { get }
     var delegate: (any SensorDelegate<T>)? { get set }
@@ -35,7 +35,7 @@ public enum SensorOutputType: Codable {
     case humidity(unit: HumidityUnit)
 }
 
-public protocol SensorOutput<T>: Sendable, Codable {
+public protocol SensorOutput<T>: Sendable, Codable, Comparable {
     associatedtype T: Codable
     
     var stringValue: String { get }

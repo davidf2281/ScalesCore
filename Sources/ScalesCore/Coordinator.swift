@@ -24,7 +24,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     public init(sensor: U, display: Display) {
         self.sensor = sensor
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = HybridDataStore<T, U>()
+        self.readingStore = HybridDataStore<T, U>(sensor: sensor)
         self.display = display
         self.sensor.delegate = self
         self.sensor.start()
@@ -36,7 +36,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
             print("Storing reading")
             do {
                 let now = Date()
-                try await self.readingStore.save(reading, sensor: self.sensor, date: now)
+                try await self.readingStore.save(reading, date: now)
                 self.readingLastStoredDate = now
                 self.saveError = false
             } catch {
@@ -77,7 +77,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         }
 
         // Reading count
-        let drawReadingsCountPayload = DrawTextPayload(string: "\(self.readingStore.totalReadingsCount)", point: .init(0.1, 0.05), font: .init(.system, size: 0.05), color: .gray)
+        let drawReadingsCountPayload = DrawTextPayload(string: "\(await self.readingStore.totalReadingsCount)", point: .init(0.1, 0.05), font: .init(.system, size: 0.05), color: .gray)
         self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
         
         self.graphicsContext.render()
