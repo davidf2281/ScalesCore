@@ -65,7 +65,10 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
         
         readings.append(storedReading)
         
-        try await serializeToDisk()
+        if readings.count >= self.capacity {
+            try await flushToDisk()
+            self.readings.removeAll()
+        }
     }
     
     func retrieve(since: Date) async throws -> [StoredReading<T>] {
@@ -76,7 +79,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
         return nil
     }
     
-    private func serializeToDisk() async throws {
+    private func flushToDisk() async throws {
         let archivedReadings = ArchivedReadings(name: self.sensor.name, outputType: self.sensor.outputType, location: self.sensor.location, items: self.readings)
         try await persister.persist(items: archivedReadings)
     }
@@ -96,9 +99,10 @@ actor Persister<T: Persistable>: Persisting {
     func persist(items: T) async throws {
         let encoder = JSONEncoder()
         let result = try? encoder.encode(items)
-        if let result,
-           let string = String(data: result, encoding: .utf8) {
-            print(string)
+        if let result
+//           let string = String(data: result, encoding: .utf8) 
+        {
+//            print(string)
         }
     }
 }
