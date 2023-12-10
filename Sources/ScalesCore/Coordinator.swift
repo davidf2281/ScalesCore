@@ -40,6 +40,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
                 self.readingLastStoredDate = now
                 self.saveError = false
             } catch {
+                print("Save error")
                 self.saveError = true
             }
         }

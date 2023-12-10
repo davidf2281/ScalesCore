@@ -46,7 +46,6 @@ actor Persister<T: Persistable>: Persistence {
         
         print("Attempting data file creation at \(filePath.absoluteString)")
 
-        
         let success = FileManager.default.createFile(atPath: filePath.absoluteString, contents: encodedItem)
         
         if !success {
