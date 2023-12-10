@@ -27,9 +27,9 @@ actor Persister<T: Persistable>: Persistence {
             throw PersisterError.failed
         }
         
-        self.dataDirectory = URL(fileURLWithPath: documentsURL.relativePath + "/ScalesData")
+        self.dataDirectory = documentsURL.appendingPathComponent("ScalesData")
         
-        print("Attempting data directory creation at \(self.dataDirectory.absoluteString)")
+        print("Attempting data directory creation at \(self.dataDirectory)")
         
         try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
@@ -44,15 +44,12 @@ actor Persister<T: Persistable>: Persistence {
         
         let filename = "\(maxDateItem.date.timeIntervalSince1970)-\(minDateItem.date.timeIntervalSince1970)"
         
-        let filePath = URL(fileURLWithPath: dataDirectory.relativePath + "/" + filename)
+        let filePath = dataDirectory.appendingPathComponent(filename)
         
-        print("Attempting data file creation at \(filePath.absoluteString)")
+        print("Attempting data file creation at \(filePath)")
 
-        let success = FileManager.default.createFile(atPath: filePath.absoluteString, contents: encodedItem)
+        try encodedItem.write(to: filePath)
         
-        if !success {
-            throw PersisterError.failed
-        }
 //           let string = String(data: result, encoding: .utf8)
 //            print(string)
     }
