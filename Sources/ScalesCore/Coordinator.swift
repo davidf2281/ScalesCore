@@ -22,10 +22,10 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         return -readingLastStoredDate.timeIntervalSinceNow >= 60
     }
     
-    public init(sensor: U, display: Display) {
+    public init(sensor: U, display: Display) throws {
         self.sensor = sensor
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = HybridDataStore<T, U>(sensor: sensor)
+        self.readingStore = try HybridDataStore<T, U>(sensor: sensor)
         self.display = display
         self.sensor.delegate = self
         self.sensor.start()
