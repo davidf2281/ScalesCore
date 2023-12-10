@@ -22,10 +22,12 @@ actor Persister<T: Persistable>: Persistence {
     public init() throws {
         
         let fileManager = FileManager.default
+                
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            throw PersisterError.failed
+        }
         
-        let homeDirectory = fileManager.homeDirectoryForCurrentUser
-        
-        self.dataDirectory = URL(fileURLWithPath: homeDirectory.relativePath + "/ScalesData")
+        self.dataDirectory = URL(fileURLWithPath: documentsURL.relativePath + "/ScalesData")
         
         print("Attempting data directory creation at \(self.dataDirectory.absoluteString)")
         
