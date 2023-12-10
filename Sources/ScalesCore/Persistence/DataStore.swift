@@ -40,7 +40,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
   
     private let sensor: U
     
-    private let capacity: Int = 1000
+    private let capacity: Int = 100
     private let persister: Persister<ArchivedReadings<T>>
     
     var totalReadingsCount: Int {
