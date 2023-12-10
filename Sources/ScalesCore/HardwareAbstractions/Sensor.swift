@@ -1,5 +1,5 @@
 
-public protocol Sensor<T>: SensorRepresentable, AnyObject, Hashable, Identifiable {
+public protocol Sensor<T>: SensorRepresentable, AnyObject, Identifiable {
     associatedtype T: SensorOutput
     var delegate: (any SensorDelegate<T>)? { get set }
     func start()
