@@ -27,6 +27,8 @@ actor Persister<T: Persistable>: Persistence {
         
         self.dataDirectory = URL(fileURLWithPath: homeDirectory.absoluteString + "ScalesData")
         
+        print("Attempting data directory creation at \(self.dataDirectory.absoluteString)")
+        
         try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
     
