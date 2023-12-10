@@ -25,7 +25,7 @@ actor Persister<T: Persistable>: Persistence {
         
         let homeDirectory = fileManager.homeDirectoryForCurrentUser
         
-        self.dataDirectory = URL(fileURLWithPath: homeDirectory.absoluteString + "/ScalesData")
+        self.dataDirectory = URL(fileURLWithPath: homeDirectory.absoluteString + "ScalesData")
         
         try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
