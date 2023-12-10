@@ -15,6 +15,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     private var saveError = false
     private var readingLastStoredDate: Date?
     private var shouldStoreReading: Bool {
+        return true // TODO: remove
         guard let readingLastStoredDate else {
             return true
         }
@@ -33,7 +34,6 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     public func didGetReading(_ reading: T) async {
                 
         if shouldStoreReading {
-            print("Storing reading")
             do {
                 let now = Date()
                 try await self.readingStore.save(reading, date: now)
