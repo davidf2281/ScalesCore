@@ -27,9 +27,11 @@ enum DataStoreError: Error {
     case full
 }
 
-struct ArchivedReadings<T: SensorOutput, U: SensorRepresentable>: Persistable {
+struct ArchivedReadings<T: SensorOutput>: Persistable {
     let items: [StoredReading<T>]
-    let sensor: U
+    let outputType: SensorOutputType
+    var location: SensorLocation
+    var name: String
 }
 
 import Foundation
@@ -39,7 +41,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
     private let sensor: U
     
     private let capacity: Int = 1000
-    private let persister: Persister<ArchivedReadings<T, U>>
+    private let persister: Persister<ArchivedReadings<T>>
     
     var totalReadingsCount: Int {
         self.readings.count
@@ -75,7 +77,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
     }
     
     private func serializeToDisk() async throws {
-        let archivedReadings = ArchivedReadings(items: self.readings, sensor: self.sensor)
+        let archivedReadings = ArchivedReadings(items: self.readings, outputType: self.sensor.outputType, location: self.sensor.location, name: self.sensor.name)
         try await persister.persist(items: archivedReadings)
     }
 }

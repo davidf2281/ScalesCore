@@ -5,7 +5,7 @@ public protocol Sensor<T>: SensorRepresentable, AnyObject, Hashable, Identifiabl
     func start()
 }
 
-public protocol SensorRepresentable: Codable {
+public protocol SensorRepresentable {
     var outputType: SensorOutputType { get }
     var location: SensorLocation { get }
     var name: String { get }
