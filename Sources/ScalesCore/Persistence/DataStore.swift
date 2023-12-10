@@ -28,10 +28,10 @@ enum DataStoreError: Error {
 }
 
 struct ArchivedReadings<T: SensorOutput>: Persistable {
-    let items: [StoredReading<T>]
+    var name: String
     let outputType: SensorOutputType
     var location: SensorLocation
-    var name: String
+    let items: [StoredReading<T>]
 }
 
 import Foundation
