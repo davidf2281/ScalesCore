@@ -1,10 +1,14 @@
 
-public protocol Sensor<T>: AnyObject, Codable, Hashable, Identifiable {
+public protocol Sensor<T>: SensorRepresentable, AnyObject, Hashable, Identifiable {
     associatedtype T: SensorOutput
-    var outputType: SensorOutputType { get }
-    var location: SensorLocation { get }
     var delegate: (any SensorDelegate<T>)? { get set }
     func start()
+}
+
+public protocol SensorRepresentable: Codable {
+    var outputType: SensorOutputType { get }
+    var location: SensorLocation { get }
+    var name: String { get }
 }
 
 public enum TemperatureUnit: String, Codable {

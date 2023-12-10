@@ -27,7 +27,7 @@ enum DataStoreError: Error {
     case full
 }
 
-struct ArchivedReadings<T: SensorOutput, U: Sensor>: Persistable {
+struct ArchivedReadings<T: SensorOutput, U: SensorRepresentable>: Persistable {
     let items: [StoredReading<T>]
     let sensor: U
 }
