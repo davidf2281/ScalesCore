@@ -42,7 +42,10 @@ actor Persister<T: Persistable>: Persistence {
         
         let filename = "\(maxDateItem.date.timeIntervalSince1970)-\(minDateItem.date.timeIntervalSince1970)"
         
-        let filePath = URL(fileURLWithPath: dataDirectory.absoluteString + filename)
+        let filePath = URL(fileURLWithPath: dataDirectory.relativePath + "/" + filename)
+        
+        print("Attempting data file creation at \(filePath.absoluteString)")
+
         
         let success = FileManager.default.createFile(atPath: filePath.absoluteString, contents: encodedItem)
         
