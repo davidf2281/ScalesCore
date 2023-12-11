@@ -13,6 +13,7 @@ protocol Persistence {
 
 enum PersisterError: Error {
     case failed
+    case writePermissions
 }
 
 actor Persister<T: Persistable>: Persistence {
@@ -47,10 +48,12 @@ actor Persister<T: Persistable>: Persistence {
         let filePath = dataDirectory.appendingPathComponent(filename)
         
         print("Attempting data file creation at \(filePath)")
-
-        try encodedItem.write(to: filePath)
         
-//           let string = String(data: result, encoding: .utf8)
-//            print(string)
+        do {
+            try encodedItem.write(to: filePath)
+        } catch {
+            print("Unable to write to file")
+            throw error
+        }
     }
 }
