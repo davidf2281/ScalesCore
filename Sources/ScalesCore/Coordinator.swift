@@ -11,21 +11,20 @@ public class Coordinator<U: Sensor>: SensorDelegate {
 
     private var max: T? = nil
     private var min: T? = nil
-
     private var saveError = false
     private var readingLastStoredDate: Date?
-    private var shouldStoreReading: Bool {
-        return true // TODO: remove
+        
+    private var shouldSaveReading: Bool {
         guard let readingLastStoredDate else {
             return true
         }
-        return -readingLastStoredDate.timeIntervalSinceNow >= 60
+        return -readingLastStoredDate.timeIntervalSinceNow >= .oneMinute
     }
     
     public init(sensor: U, display: Display) throws {
         self.sensor = sensor
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = try HybridDataStore<T, U>(sensor: sensor)
+        self.readingStore = try HybridDataStore<T, U>(sensor: sensor, persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
         self.display = display
         self.sensor.delegate = self
         self.sensor.start()
@@ -33,14 +32,13 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     
     public func didGetReading(_ reading: T) async {
                 
-        if shouldStoreReading {
+        if shouldSaveReading {
             do {
                 let now = Date()
                 try await self.readingStore.save(reading, date: now)
                 self.readingLastStoredDate = now
                 self.saveError = false
             } catch {
-                print("Save error")
                 self.saveError = true
             }
         }

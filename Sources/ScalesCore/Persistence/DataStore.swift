@@ -11,16 +11,17 @@ protocol DataStore: AnyActor {
     func retrieveLast() async -> StoredReading<T>?
 }
 
-protocol Dateable {
-    var date: Date { get }
-}
-
 struct StoredReading<T: SensorOutput>: Codable, Dateable {
     let value: T
     let date: Date
     var elementSizeBytesIncludingAlignment: Int {
         MemoryLayout<Self>.stride
     }
+}
+
+enum DataStorePersistencePolicy {
+    case onFullToCapacity
+    case onFullToCapacityAndToSchedule(interval: TimeInterval)
 }
 
 enum DataStoreError: Error {
@@ -34,14 +35,14 @@ struct ArchivedReadings<T: SensorOutput>: Persistable {
     let items: [StoredReading<T>]
 }
 
-import Foundation
-
 actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
   
     private let sensor: U
     
-    private let capacity: Int = 100
+    private let capacity: Int = 50000
     private let persister: Persister<ArchivedReadings<T>>
+    private var lastFlushDate: Date = Date()
+    private var persistencePolicy: DataStorePersistencePolicy
     
     var totalReadingsCount: Int {
         self.readings.count
@@ -53,8 +54,9 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
     
     private var readings: [StoredReading<T>]
     
-    init(sensor: U) throws {
+    init(sensor: U, persistencePolicy: DataStorePersistencePolicy = .onFullToCapacity) throws {
         self.sensor = sensor
+        self.persistencePolicy = persistencePolicy
         self.readings = []
         self.readings.reserveCapacity(capacity)
         self.persister = try Persister()
@@ -65,9 +67,29 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
         
         readings.append(storedReading)
         
-        if readings.count >= self.capacity {
+        if shouldFlushToDisk {
             try await flushToDisk()
             self.readings.removeAll()
+        }
+    }
+    
+    private var shouldFlushToDisk: Bool {
+        
+        if readings.count >= self.capacity {
+            return true
+        }
+        
+        switch self.persistencePolicy {
+                
+            case .onFullToCapacity:
+                return false
+                
+            case .onFullToCapacityAndToSchedule(let interval):
+                if interval > -self.lastFlushDate.timeIntervalSinceNow {
+                    return true
+                } else {
+                    return false
+                }
         }
     }
     
@@ -82,5 +104,6 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
     private func flushToDisk() async throws {
         let archivedReadings = ArchivedReadings(name: self.sensor.name, outputType: self.sensor.outputType, location: self.sensor.location, items: self.readings)
         try await persister.persist(archivedReadings)
+        self.lastFlushDate = Date()
     }
 }
