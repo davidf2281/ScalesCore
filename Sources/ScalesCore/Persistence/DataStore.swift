@@ -85,7 +85,7 @@ actor HybridDataStore<T: SensorOutput, U: Sensor>: DataStore {
                 return false
                 
             case .onFullToCapacityAndToSchedule(let interval):
-                if interval > -self.lastFlushDate.timeIntervalSinceNow {
+                if -self.lastFlushDate.timeIntervalSinceNow > interval {
                     return true
                 } else {
                     return false
