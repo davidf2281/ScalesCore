@@ -24,11 +24,11 @@ actor Persister<T: Persistable>: Persistence {
         
         let fileManager = FileManager.default
                 
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        guard let documentsURL = FileManager.default.urls(for: .applicationDirectory, in: .userDomainMask).first else {
             throw PersisterError.failed
         }
         
-        self.dataDirectory = documentsURL.appendingPathComponent("ScalesData")
+        self.dataDirectory = documentsURL.appendingPathComponent("PersistedSensorData")
         
         print("Attempting data directory creation at \(self.dataDirectory)")
         
@@ -50,7 +50,7 @@ actor Persister<T: Persistable>: Persistence {
         print("Attempting data file creation at \(filePath)")
         
         do {
-            try encodedItem.write(to: filePath)
+            try encodedItem.write(to: filePath, options: [.atomic, .noFileProtection, .withoutOverwriting])
         } catch {
             print("Unable to write to file")
             throw error
