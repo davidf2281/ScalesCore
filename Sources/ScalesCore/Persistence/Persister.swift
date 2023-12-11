@@ -12,8 +12,9 @@ protocol Persistence {
 }
 
 enum PersisterError: Error {
-    case failed
+    case dataDirectoryLocation
     case writePermissions
+    case dateRangeCreation
 }
 
 actor Persister<T: Persistable>: Persistence {
@@ -24,8 +25,8 @@ actor Persister<T: Persistable>: Persistence {
         
         let fileManager = FileManager.default
                 
-        guard let documentsURL = FileManager.default.urls(for: .applicationDirectory, in: .userDomainMask).first else {
-            throw PersisterError.failed
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            throw PersisterError.dataDirectoryLocation
         }
         
         self.dataDirectory = documentsURL.appendingPathComponent("PersistedSensorData")
@@ -40,7 +41,7 @@ actor Persister<T: Persistable>: Persistence {
         let encodedItem = try encoder.encode(item)
         guard let maxDateItem = item.items.max(by: { $0.date > $1.date}),
               let minDateItem = item.items.min(by: { $0.date > $1.date}) else {
-            throw PersisterError.failed
+            throw PersisterError.dateRangeCreation
         }
         
         let filename = "\(maxDateItem.date.timeIntervalSince1970)-\(minDateItem.date.timeIntervalSince1970)"
