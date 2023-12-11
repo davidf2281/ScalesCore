@@ -79,9 +79,9 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         let drawReadingsCountPayload = DrawTextPayload(string: "\(await self.readingStore.totalReadingsCount)", point: .init(0.1, 0.05), font: .init(.system, size: 0.05), color: .gray)
         self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
         
-        self.graphicsContext.render()
+//        self.graphicsContext.render()
         
-        self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+//        self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
     }
 }
 
