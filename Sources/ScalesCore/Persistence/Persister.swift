@@ -50,7 +50,7 @@ actor Persister<T: Persistable>: Persistence {
         print("Attempting data file creation at \(filePath)")
         
         do {
-            try encodedItem.write(to: filePath, options: [.atomic, .noFileProtection, .withoutOverwriting])
+            try encodedItem.write(to: filePath, options: [.atomic, .withoutOverwriting])
         } catch {
             print("Unable to write to file")
             throw error
