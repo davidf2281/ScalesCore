@@ -18,7 +18,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         guard let readingLastStoredDate else {
             return true
         }
-        return -readingLastStoredDate.timeIntervalSinceNow >= .oneMinute
+        return -readingLastStoredDate.timeIntervalSinceNow >= .oneSecond
     }
     
     public init(sensor: U, display: Display) throws {
