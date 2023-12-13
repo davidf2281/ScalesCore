@@ -53,6 +53,6 @@ actor Persister<T: Persistable>: Persistence {
         let filename = "\(maxDateItem.timestamp)" + dateSeparator + "\(minDateItem.timestamp)"
         let filePath = dataDirectory.appendingPathComponent(filename + ".json")
                 
-        try encodedItem.write(to: filePath, options: [.atomic, .withoutOverwriting])
+        try encodedItem.write(to: filePath, options: [.atomic])
     }
 }
