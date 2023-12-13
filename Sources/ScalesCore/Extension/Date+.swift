@@ -37,3 +37,9 @@ extension Date {
         return DateComponents(calendar: calendar, year: currentYear).date!
     }
 }
+
+extension Date {
+    var unixMillisSinceEpoch: Int {
+        return Int(self.timeIntervalSince1970 * 1000)
+    }
+}

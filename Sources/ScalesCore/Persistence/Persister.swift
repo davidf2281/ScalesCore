@@ -1,12 +1,13 @@
 
 import Foundation
 
-protocol Dateable {
-    var date: Date { get }
+protocol Timestamped {
+    typealias UnixMillis = Int
+    var timestamp: UnixMillis { get }
 }
 
 protocol Persistable: Codable {
-    associatedtype T: Codable, Dateable
+    associatedtype T: Codable, Timestamped
     var items: [T] { get }
 }
 
@@ -42,13 +43,15 @@ actor Persister<T: Persistable>: Persistence {
         
         let encoder = JSONEncoder()
         let encodedItem = try encoder.encode(item)
-        guard let maxDateItem = item.items.max(by: { $0.date > $1.date}),
-              let minDateItem = item.items.min(by: { $0.date > $1.date}) else {
+        
+        guard let maxDateItem = item.items.max(by: { $0.timestamp > $1.timestamp}),
+              let minDateItem = item.items.min(by: { $0.timestamp > $1.timestamp}) else {
             throw PersisterError.dateRangeCreation
         }
         
-        let filename = "\(maxDateItem.date.timeIntervalSince1970)-\(minDateItem.date.timeIntervalSince1970)"
-        let filePath = dataDirectory.appendingPathComponent(filename)
+        let dateSeparator = "-"
+        let filename = "\(maxDateItem.timestamp)" + dateSeparator + "\(minDateItem.timestamp)"
+        let filePath = dataDirectory.appendingPathComponent(filename + ".json")
                 
         try encodedItem.write(to: filePath, options: [.atomic, .withoutOverwriting])
     }

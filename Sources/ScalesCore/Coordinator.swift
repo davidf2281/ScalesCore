@@ -84,9 +84,3 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
     }
 }
-
-fileprivate extension Timer {
-    var isInValid: Bool {
-        self.isValid
-    }
-}

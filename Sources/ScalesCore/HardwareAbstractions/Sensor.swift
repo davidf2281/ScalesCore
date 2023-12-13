@@ -6,9 +6,9 @@ public protocol Sensor<T>: SensorRepresentable, AnyObject, Identifiable {
 }
 
 public protocol SensorRepresentable {
-    var outputType: SensorOutputType { get }
-    var location: SensorLocation { get }
     var name: String { get }
+    var location: SensorLocation { get }
+    var outputType: SensorOutputType { get }
 }
 
 public enum TemperatureUnit: String, Codable {
@@ -41,7 +41,6 @@ public enum SensorOutputType: Codable {
 
 public protocol SensorOutput<T>: Sendable, Codable, Comparable {
     associatedtype T: Codable
-    
     var stringValue: String { get }
 }
 

@@ -11,9 +11,13 @@ protocol DataStore: AnyActor {
     func retrieveLast() async -> StoredReading<T>?
 }
 
-struct StoredReading<T: SensorOutput>: Codable, Dateable {
+struct StoredReading<T: SensorOutput>: Codable, Timestamped {
     let value: T
-    let date: Date
+    let timestamp: Int
+    init(value: T, date: Date) {
+        self.value = value
+        self.timestamp = date.unixMillisSinceEpoch
+    }
     var elementSizeBytesIncludingAlignment: Int {
         MemoryLayout<Self>.stride
     }
