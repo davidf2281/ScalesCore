@@ -39,8 +39,7 @@ public enum SensorOutputType: Codable {
     case humidity(unit: HumidityUnit)
 }
 
-public protocol SensorOutput<T>: Sendable, Codable, Comparable {
-    associatedtype T: Codable
+public protocol SensorOutput: Sendable, Codable, Comparable {
     var stringValue: String { get }
 }
 
