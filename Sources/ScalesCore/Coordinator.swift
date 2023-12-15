@@ -13,13 +13,6 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     private var min: T? = nil
     private var saveError = false
     private var readingLastStoredDate: Date?
-        
-    private var shouldSaveReading: Bool {
-        guard let readingLastStoredDate else {
-            return true
-        }
-        return -readingLastStoredDate.timeIntervalSinceNow >= .oneSecond
-    }
     
     public init(sensor: U, display: Display) throws {
         self.sensor = sensor
@@ -27,20 +20,18 @@ public class Coordinator<U: Sensor>: SensorDelegate {
         self.readingStore = try HybridDataStore<T, U>(sensor: sensor, persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
         self.display = display
         self.sensor.delegate = self
-        self.sensor.start()
+        self.sensor.start(minUpdateInterval: 1.0)
     }
     
     public func didGetReading(_ reading: T) async {
                 
-        if shouldSaveReading {
-            do {
-                let now = Date()
-                try await self.readingStore.save(reading, date: now)
-                self.readingLastStoredDate = now
-                self.saveError = false
-            } catch {
-                self.saveError = true
-            }
+        do {
+            let now = Date()
+            try await self.readingStore.save(reading, date: now)
+            self.readingLastStoredDate = now
+            self.saveError = false
+        } catch {
+            self.saveError = true
         }
         
         if max == nil {
