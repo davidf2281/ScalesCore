@@ -1,11 +1,11 @@
 
 import Foundation
 
-public class Coordinator<Temperature: Sensor, Pressure: Sensor, Humidity: Sensor>: SensorDelegate {
+public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sensor*/>: SensorDelegate {
 
     let temperatureSensors: [AnySensor<Temperature>]
-    let pressureSensors: [AnySensor<Pressure>] = []
-    let humiditySensors: [AnySensor<Humidity>] = []
+//    let pressureSensors: [AnySensor<Pressure>] = []
+//    let humiditySensors: [AnySensor<Humidity>] = []
     let graphicsContext: GraphicsContext
     let readingStore: HybridDataStore<Temperature.T>
     let display: Display
@@ -31,8 +31,6 @@ public class Coordinator<Temperature: Sensor, Pressure: Sensor, Humidity: Sensor
             }
         }
     }
-    
-    
     
     public func didGetReading<T>(_ reading: T, sender: any Sensor<T>) async {
     
