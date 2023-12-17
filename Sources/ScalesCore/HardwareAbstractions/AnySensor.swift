@@ -1,11 +1,22 @@
 
 import Foundation
 
-public class AnySensor<S: SensorOutput>: Sensor, SensorDelegate {
- 
-    public var delegate: (any SensorDelegate<S>)?
+public final class AnySensor<S: Sensor>: Sensor, SensorDelegate {
     
-    public typealias T = S
+    public var readings: AsyncStream<S.T> {
+            return self.unerasedSensor.readings
+            //            monitor.quakeHandler = { quake in
+            //                continuation.yield(quake)
+            //            }
+            //            continuation.onTermination = { @Sendable _ in
+            //                monitor.stopMonitoring()
+            //            }
+            //            monitor.startMonitoring()
+    }
+
+    public var delegate: (any SensorDelegate)?
+    
+    public typealias T = S.T
     
     public func start(minUpdateInterval: TimeInterval) {
         self.unerasedSensor.start(minUpdateInterval: minUpdateInterval)
@@ -23,14 +34,14 @@ public class AnySensor<S: SensorOutput>: Sensor, SensorDelegate {
         unerasedSensor.outputType
     }
         
-    private let unerasedSensor: any Sensor<S>
+    private let unerasedSensor: any Sensor<S.T>
     
-    init(sensor: any Sensor<S>) {
+    init(sensor: any Sensor<S.T>) {
         self.unerasedSensor = sensor
         sensor.delegate = self
     }
 
-    public func didGetReading(_ output: S) async {
-        await self.delegate?.didGetReading(output)
+    public func didGetReading<T>(_ reading: T, sender: any Sensor<T>) async {
+//        await self.delegate?.didGetReading(reading, sender: self)
     }
 }
