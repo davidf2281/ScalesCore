@@ -6,7 +6,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     public typealias T = U.T
     let sensor: U
     let graphicsContext: GraphicsContext
-    let readingStore: HybridDataStore<T>
+    let readingStore: HybridDataStore<T, U>
     let display: Display
 
     private var max: T? = nil
@@ -17,7 +17,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
     public init(sensor: U, display: Display) throws {
         self.sensor = sensor
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
+        self.readingStore = try HybridDataStore<T, U>(sensor: sensor, persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
         self.display = display
         self.sensor.delegate = self
         self.sensor.start(minUpdateInterval: 1.0)
@@ -27,7 +27,7 @@ public class Coordinator<U: Sensor>: SensorDelegate {
                 
         do {
             let now = Date()
-            try await self.readingStore.save(reading: reading, date: now)
+            try await self.readingStore.save(reading, date: now)
             self.readingLastStoredDate = now
             self.saveError = false
         } catch {
