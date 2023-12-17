@@ -22,6 +22,9 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         self.display = display
 //        self.sensor.delegate = self
 //        self.sensor.start(minUpdateInterval: 1.0)
+        Task { [weak self] in
+            await self?.doThingsWithSequences()
+        }
     }
     
     func doThingsWithSequences() async {
