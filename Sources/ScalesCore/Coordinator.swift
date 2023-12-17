@@ -29,7 +29,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     
     func doThingsWithSequences() async {
         for sensor in temperatureSensors {
-            for await reading in await sensor.readings {
+            for await reading in sensor.readings {
                 print("Reading: \(reading)")
             }
         }
