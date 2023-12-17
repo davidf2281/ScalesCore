@@ -6,14 +6,8 @@ protocol Timestamped {
     var timestamp: UnixMillis { get }
 }
 
-protocol Persistable: Codable {
-    associatedtype T: Codable, Timestamped
-    var items: [T] { get }
-}
-
-protocol Persistence {
-    associatedtype T: Persistable
-    func persist(_ item: T) async throws
+protocol PersistableItem: Codable, Timestamped {
+    var value: Codable { get }
 }
 
 enum PersisterError: Error {
@@ -22,7 +16,7 @@ enum PersisterError: Error {
     case dateRangeCreation
 }
 
-actor Persister<T: Persistable>: Persistence {
+actor Persister {
     
     private let dataDirectory: URL
     
@@ -39,13 +33,13 @@ actor Persister<T: Persistable>: Persistence {
         try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
     
-    func persist(_ item: T) async throws {
+    func persist<T: PersistableItem>(_ persistables: [T]) async throws {
         
         let encoder = JSONEncoder()
-        let encodedItem = try encoder.encode(item)
+        let encodedPersistables = try encoder.encode(persistables)
         
-        guard let maxDateItem = item.items.max(by: { $0.timestamp > $1.timestamp}),
-              let minDateItem = item.items.min(by: { $0.timestamp > $1.timestamp}) else {
+        guard let maxDateItem = persistables.max(by: { $0.timestamp > $1.timestamp}),
+              let minDateItem = persistables.min(by: { $0.timestamp > $1.timestamp}) else {
             throw PersisterError.dateRangeCreation
         }
         
@@ -53,6 +47,6 @@ actor Persister<T: Persistable>: Persistence {
         let filename = "\(maxDateItem.timestamp)" + dateSeparator + "\(minDateItem.timestamp)"
         let filePath = dataDirectory.appendingPathComponent(filename + ".json")
                 
-        try encodedItem.write(to: filePath, options: [.atomic])
+        try encodedPersistables.write(to: filePath, options: [.atomic])
     }
 }
