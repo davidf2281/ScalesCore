@@ -13,7 +13,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
 //    private var max: T? = nil
 //    private var min: T? = nil
     private var saveError = false
-    private var readingLastStoredDate: Date?
+    private var displayUpdateErrorCount = 0
     
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
         self.temperatureSensors = temperatureSensors
@@ -67,12 +67,20 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     
                     self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
                     
+                    // Update error count
+                    let updateErrorCountPayload = DrawTextPayload(string: "\(self.displayUpdateErrorCount)",
+                                                                   point: .init(0.8, 0.05),
+                                                                   font: .init(.system, size: 0.05),
+                                                                   color: .gray)
+                    
+                    self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
+                    
                     self.graphicsContext.render()
                     
                     do {
                         try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
                     } catch {
-                        print("Failed to update display (this line logged from Coordinator")
+                        self.displayUpdateErrorCount += 1
                     }
                 }
                 
