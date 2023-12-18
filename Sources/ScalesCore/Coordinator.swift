@@ -20,11 +20,11 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
         self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
         self.display = display
-        startMonitoringSensors()
-        startUpdatingDisplay()
+        startSensorMonitoring()
+        startDisplayUpdates()
     }
     
-    func startMonitoringSensors() {
+    func startSensorMonitoring() {
         
         for sensor in temperatureSensors {
             
@@ -43,22 +43,37 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         }
     }
     
-    func startUpdatingDisplay() {
+    func startDisplayUpdates() {
+        
         Task {
+            
             while(true) {
+                
                 if let reading = await self.readingStore.retrieveLatest() {
                     
                     // Temperature
-                    let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue, point: .init(0.09, 0.75), font: .init(.system, size: 0.2), color: .red)
+                    let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue, 
+                                                                 point: .init(0.09, 0.75),
+                                                                 font: .init(.system, size: 0.2), 
+                                                                 color: .red)
+                    
                     self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
                     
                     // Reading count
-                    let drawReadingsCountPayload = DrawTextPayload(string: "\(await self.readingStore.totalReadingsCount)", point: .init(0.1, 0.05), font: .init(.system, size: 0.05), color: .gray)
+                    let drawReadingsCountPayload = DrawTextPayload(string: "\(await self.readingStore.totalReadingsCount)", 
+                                                                   point: .init(0.1, 0.05),
+                                                                   font: .init(.system, size: 0.05),
+                                                                   color: .gray)
+                    
                     self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
                     
                     self.graphicsContext.render()
                     
-                    self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                    do {
+                        try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                    } catch {
+                        print("Failed to update display (this line logged from Coordinator")
+                    }
                 }
                 
                 try await Task.sleep(for: .seconds(1))
