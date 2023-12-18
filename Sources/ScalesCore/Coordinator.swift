@@ -52,6 +52,10 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue, point: .init(0.09, 0.75), font: .init(.system, size: 0.2), color: .red)
                     self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
                     
+                    // Reading count
+                    let drawReadingsCountPayload = DrawTextPayload(string: "\(await self.readingStore.totalReadingsCount)", point: .init(0.1, 0.05), font: .init(.system, size: 0.05), color: .gray)
+                    self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
+                    
                     self.graphicsContext.render()
                     
                     self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
