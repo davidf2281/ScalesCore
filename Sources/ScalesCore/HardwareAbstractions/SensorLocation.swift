@@ -14,7 +14,7 @@ public enum SensorLocation: Codable {
         }
     }
     
-    public var displayName: String {
+    public var toString: String {
         switch self {
             case .indoor(location: let location):
                 "Indoor" + (location?.toString ?? "")

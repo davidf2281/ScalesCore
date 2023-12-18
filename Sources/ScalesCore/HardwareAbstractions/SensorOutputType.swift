@@ -18,7 +18,7 @@ public enum SensorOutputType: Codable {
         case rhd
     }
     
-    var toString: String {
+    public var toString: String {
         switch self {
             case .temperature(unit: let unit):
                 return "Temperature-" + unit.rawValue
