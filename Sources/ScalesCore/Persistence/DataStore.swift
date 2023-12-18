@@ -22,7 +22,7 @@ enum DataStoreError: Error {
 actor HybridDataStore<T: SensorOutput>: DataStore {
 
     private let capacity: Int = 50000
-    private let persister: Persister
+    private let persister: Persister<AnyStorableReading<T>>
     private var lastFlushDate: Date = Date()
     private var persistencePolicy: DataStorePersistencePolicy
     private var readings: [AnyStorableReading<T>]
@@ -36,11 +36,11 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
         Float(totalReadingsCount) / Float(capacity)
     }
         
-    init(persistencePolicy: DataStorePersistencePolicy = .onFullToCapacity) throws {
+    init(persistencePolicy: DataStorePersistencePolicy = .onFullToCapacity, storeName: String) throws {
         self.persistencePolicy = persistencePolicy
         self.readings = []
         self.readings.reserveCapacity(capacity)
-        self.persister = try Persister()
+        self.persister = try Persister<AnyStorableReading<T>>(storeName: storeName)
     }
     
     func save(reading: T, date: Date) async throws {

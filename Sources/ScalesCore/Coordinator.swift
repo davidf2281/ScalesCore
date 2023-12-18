@@ -18,7 +18,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
         self.temperatureSensors = temperatureSensors
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
+        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour), storeName: temperatureSensors.first!.name)
         self.display = display
         startSensorMonitoring()
         startDisplayUpdates()
@@ -77,10 +77,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     self.graphicsContext.render()
                     
                     do {
-                        let start = Date()
                         try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
-                        let elapsed = start.timeIntervalSinceNow
-                        print("Frame update time: \(String(format: "%.3f", elapsed))")
                     } catch {
                         self.displayUpdateErrorCount += 1
                     }

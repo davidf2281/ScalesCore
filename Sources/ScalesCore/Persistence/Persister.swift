@@ -16,11 +16,11 @@ enum PersisterError: Error {
     case dateRangeCreation
 }
 
-actor Persister {
+actor Persister<T: PersistableItem> {
     
     private let dataDirectory: URL
     
-    public init() throws {
+    public init(storeName: String) throws {
         
         let fileManager = FileManager.default
                 
@@ -28,12 +28,16 @@ actor Persister {
             throw PersisterError.dataDirectoryLocation
         }
         
-        self.dataDirectory = documentsURL.appendingPathComponent("PersistedSensorData")
-                
+        self.dataDirectory = documentsURL
+            .appending(path: "PersistedData", directoryHint: .isDirectory)
+            .appending(path: storeName, directoryHint: .isDirectory)
+        
+        print("Creating directory at \(self.dataDirectory.absoluteString)")
+        
         try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
     
-    func persist<T: PersistableItem>(_ persistables: [T]) async throws {
+    func persist(_ persistables: [T]) async throws {
         
         let encoder = JSONEncoder()
         let encodedPersistables = try encoder.encode(persistables)
@@ -48,5 +52,9 @@ actor Persister {
         let filePath = dataDirectory.appendingPathComponent(filename + ".json")
                 
         try encodedPersistables.write(to: filePath, options: [.atomic])
+    }
+    
+    func retrieve(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) -> [T]? {
+        []
     }
 }
