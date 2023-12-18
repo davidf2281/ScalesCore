@@ -8,6 +8,19 @@ public enum SensorLocation: Codable {
     public struct Location: Codable {
         let latitude: Double
         let longitude: Double
+        
+        var toString: String {
+            "lat-\(latitude)long-\(longitude)"
+        }
+    }
+    
+    public var displayName: String {
+        switch self {
+            case .indoor(location: let location):
+                "Indoor" + (location?.toString ?? "")
+            case .outdoor(location: let location):
+                "Outdoor" + (location?.toString ?? "")
+        }
     }
 }
 
