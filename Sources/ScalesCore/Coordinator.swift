@@ -1,7 +1,7 @@
 
 import Foundation
 
-public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sensor*/>: SensorDelegate {
+public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sensor*/> {
 
     let temperatureSensors: [AnySensor<Temperature>]
 //    let pressureSensors: [AnySensor<Pressure>] = []
@@ -20,8 +20,6 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
         self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour))
         self.display = display
-//        self.sensor.delegate = self
-//        self.sensor.start(minUpdateInterval: 1.0)
         startMonitoringSensors()
         startUpdatingDisplay()
     }
