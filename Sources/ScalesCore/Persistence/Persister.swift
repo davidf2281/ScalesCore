@@ -29,7 +29,7 @@ actor Persister<T: PersistableItem> {
         }
         
         self.dataDirectory = documentsURL
-            .appendingPathComponent("PersistedSensorData")
+            .appendingPathComponent("PersistedData")
             .appendingPathComponent(storeName)
                 
         print("Creating directory at \(self.dataDirectory.absoluteString)")

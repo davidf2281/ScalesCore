@@ -18,7 +18,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
         self.temperatureSensors = temperatureSensors
         self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneHour), storeName: temperatureSensors.first!.name)
+        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .oneMinute), storeName: temperatureSensors.first!.name)
         self.display = display
         startSensorMonitoring()
         startDisplayUpdates()

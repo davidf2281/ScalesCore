@@ -14,4 +14,8 @@ extension TimeInterval {
     static var oneHour: Self {
         3600.0
     }
+    
+    static var twentyFourHours: Self {
+        86400
+    }
 }
