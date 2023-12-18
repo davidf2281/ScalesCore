@@ -26,6 +26,7 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
     private var lastFlushDate: Date = Date()
     private var persistencePolicy: DataStorePersistencePolicy
     private var readings: [AnyStorableReading<T>]
+    private var latestReading: AnyStorableReading<T>? = nil
     
     var totalReadingsCount: Int {
         self.readings.count
@@ -43,9 +44,11 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
     }
     
     func save(reading: T, date: Date) async throws {
-        let storedReading = AnyStorableReading(value: reading, date: date)
-        
-        readings.append(storedReading)
+                
+        let storableReading = AnyStorableReading(value: reading, date: date)
+        self.latestReading = storableReading
+
+        readings.append(storableReading)
         
         if shouldFlushToDisk {
             try await flushToDisk()
@@ -74,11 +77,11 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
     }
   
     func retrieve(since: Date) async throws -> [AnyStorableReading<T>] {
-        []
+        [] // TODO: Implement
     }
     
     func retrieveLatest() async -> AnyStorableReading<T>? {
-        return nil
+        self.latestReading
     }
     
     private func flushToDisk() async throws {

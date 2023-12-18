@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "ScalesCore",
-    platforms: [.macOS(.v12)],
+    platforms: [.macOS(.v13)],
      products: [
         .library(name: "ScalesCore", targets: ["ScalesCore"]),
     ],

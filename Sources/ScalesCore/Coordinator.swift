@@ -22,19 +22,48 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         self.display = display
 //        self.sensor.delegate = self
 //        self.sensor.start(minUpdateInterval: 1.0)
-        Task { [weak self] in
-            await self?.doThingsWithSequences()
-        }
+        startMonitoringSensors()
+        startUpdatingDisplay()
     }
     
-    func doThingsWithSequences() async {
+    func startMonitoringSensors() {
+        
         for sensor in temperatureSensors {
-            for await reading in sensor.readings {
-                print("Reading: \(reading)")
+            
+            Task { [weak self] in
+                guard let self else { return }
+                
+                for await reading in sensor.readings {
+                    do {
+                        try await self.readingStore.save(reading: reading, date: Date())
+                        self.saveError = false
+                    } catch {
+                        self.saveError = true
+                    }
+                }
             }
         }
     }
     
+    func startUpdatingDisplay() {
+        Task {
+            while(true) {
+                if let reading = await self.readingStore.retrieveLatest() {
+                    
+                    // Temperature
+                    let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue, point: .init(0.09, 0.75), font: .init(.system, size: 0.2), color: .red)
+                    self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
+                    
+                    self.graphicsContext.render()
+                    
+                    self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                }
+                
+                try await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
     public func didGetReading<T>(_ reading: T, sender: any Sensor<T>) async {
     
      /*   do {
