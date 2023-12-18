@@ -21,11 +21,11 @@ public enum SensorOutputType: Codable {
     public var toString: String {
         switch self {
             case .temperature(unit: let unit):
-                return "Temperature-" + unit.rawValue
+                return "temperature-" + unit.rawValue
             case .barometricPressure(unit: let unit):
-                return "Pressure-" + unit.rawValue
+                return "pressure-" + unit.rawValue
             case .humidity(unit: let unit):
-                return "Humidity-" + unit.rawValue
+                return "humidity-" + unit.rawValue
         }
     }
 }
