@@ -48,7 +48,6 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         Task {
             
             while(true) {
-                let start = Date()
                 if let reading = await self.readingStore.retrieveLatest() {
                     
                     // Temperature
@@ -78,9 +77,10 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     self.graphicsContext.render()
                     
                     do {
+                        let start = Date()
                         try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
                         let elapsed = start.timeIntervalSinceNow
-                        print("Frame update time: \(String(format: "%.2f", elapsed))")
+                        print("Frame update time: \(String(format: "%.3f", elapsed))")
                     } catch {
                         self.displayUpdateErrorCount += 1
                     }
