@@ -48,7 +48,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         Task {
             
             while(true) {
-                let start = date()
+                let start = Date()
                 if let reading = await self.readingStore.retrieveLatest() {
                     
                     // Temperature
