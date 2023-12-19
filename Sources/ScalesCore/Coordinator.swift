@@ -95,8 +95,12 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     private func drawCommandForGraph() async throws -> GraphicsCommand? {
         
         let readings = try await self.readingStore.retrieve(since: .oneHourAgo)
-        let maxX = readings.max(by: { $0.timestamp > $1.timestamp })!.timestamp
-        let maxY = readings.max(by: { $0.output.floatValue > $1.output.floatValue })!.output.floatValue
+        let maxX = readings.max(by: { $1.timestamp > $0.timestamp })!.timestamp
+        let maxY = readings.max(by: { $1.output.floatValue > $0.output.floatValue })!.output.floatValue
+        
+        guard maxX > 0, maxY > 0 else {
+            return nil
+        }
         
         let normalizedPoints = readings.map {
             Point(Double($0.timestamp / maxX), Double($0.output.floatValue / maxY))
