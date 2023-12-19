@@ -74,6 +74,10 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     
                     self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
                     
+                    if let graphCommand = try await drawCommandForGraph() {
+                        self.graphicsContext.queueCommand(graphCommand)
+                    }
+                    
                     self.graphicsContext.render()
                     
                     do {
@@ -86,6 +90,32 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 try await Task.sleep(for: .seconds(1))
             }
         }
+    }
+    
+    private func drawCommandForGraph() async throws -> GraphicsCommand? {
+        
+        let readings = try await self.readingStore.retrieve(since: .oneHourAgo)
+        let maxX = readings.max(by: { $0.timestamp > $1.timestamp })!.timestamp
+        let maxY = readings.max(by: { $0.output.floatValue > $1.output.floatValue })!.output.floatValue
+        
+        let normalizedPoints = readings.map {
+            Point(Double($0.timestamp / maxX), Double($0.output.floatValue / maxY))
+        }
+        
+        guard normalizedPoints.isNotEmpty else {
+            return nil
+        }
+        
+        var lines: [Line] = []
+        var lastPoint = normalizedPoints.first!
+        for point in normalizedPoints {
+            lines.append(Line(lastPoint.x, lastPoint.y, point.x, point.y))
+            lastPoint = point
+        }
+        
+        let payload = DrawLinesPayload(lines: lines, width: 0.05, color: .white)
+        
+        return .drawLines(payload)
     }
 
     public func didGetReading<T>(_ reading: T, sender: any Sensor<T>) async {

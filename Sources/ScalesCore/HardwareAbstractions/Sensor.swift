@@ -24,4 +24,5 @@ extension Sensor {
 
 public protocol SensorOutput: Sendable, Codable, Comparable {
     var stringValue: String { get }
+    var floatValue: Float { get }
 }
