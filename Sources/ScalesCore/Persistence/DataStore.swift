@@ -79,12 +79,28 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
     func retrieve(since: Date) async throws -> [AnyStorableReading<T>] {
         
         let unixSince = since.unixMillisSinceEpoch
-        
-        let results = self.readings.filter { reading in
+
+        // If we have nothing, return whatever the persister has
+        if self.readings.isEmpty {
+            if let persistedReadings = try? await persister.retrieve(from: unixSince, to: Date().unixMillisSinceEpoch) {
+                return persistedReadings
+            }
+        }
+                
+        // Retrieve relevant in-memory readings
+        let inMemoryReadings = self.readings.filter { reading in
             reading.timestamp >= unixSince
         }
         
-        return results
+        // If in-memory readings don't go back as far as our since date,
+        // also hit the persister
+        if let firstReading = self.readings.first, firstReading.timestamp > unixSince {
+            if let persistedReadings = try? await persister.retrieve(from: unixSince, to: firstReading.timestamp) {
+                return persistedReadings + inMemoryReadings
+            }
+        }
+        
+        return inMemoryReadings
     }
     
     func retrieveLatest() async -> AnyStorableReading<T>? {

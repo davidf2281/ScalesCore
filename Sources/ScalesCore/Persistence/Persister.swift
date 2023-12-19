@@ -48,14 +48,18 @@ actor Persister<T: PersistableItem> {
         let encoder = JSONEncoder()
         let encodedPersistables = try encoder.encode(persistables)
         
-        guard let maxDateItem = persistables.max(by: { $0.timestamp > $1.timestamp}),
-              let minDateItem = persistables.min(by: { $0.timestamp > $1.timestamp}) else {
+        guard let maxDateItem = persistables.max(by: { $1.timestamp > $0.timestamp}),
+              let minDateItem = persistables.min(by: { $1.timestamp > $0.timestamp}) else {
             throw PersisterError.dateRangeCreation
         }
                 
         let filename = TimestampRange(from: minDateItem.timestamp, to: maxDateItem.timestamp).stringRepresentation + ".json"
         let containingFolderName = try TimestampRangeProvider.containingRange(for: firstElement.timestamp).stringRepresentation
-        let filePath = self.dataDirectory.appendingPathComponent(containingFolderName).appendingPathComponent(filename)
+        
+        let containingFolder = self.dataDirectory.appendingPathComponent(containingFolderName)
+        try FileManager.default.createDirectory(at: containingFolder, withIntermediateDirectories: true)
+
+        let filePath = containingFolder.appendingPathComponent(filename)
                 
         try encodedPersistables.write(to: filePath, options: [.atomic])
     }
@@ -81,8 +85,8 @@ actor Persister<T: PersistableItem> {
             }
             
             let filteredFileURLs = fileURLs.filter { fileURL in
-                if let range = try? TimestampRange(string: fileURL.lastPathComponent) {
-                    return range.contains(from) || range.contains(to)
+                if let range = try? TimestampRange(string: fileURL.lastPathComponent.replacingOccurrences(of: ".json", with: "")) { // TODO: Make this nicer
+                    return range.overlaps(range: searchRange)
                 } else {
                     return false
                 }
@@ -138,6 +142,15 @@ struct TimestampRange {
     
     func contains(_ timestamp: Timestamped.UnixMillis) -> Bool {
         self.from <= timestamp && self.to >= timestamp
+    }
+    
+    func overlaps(range: Self) -> Bool {
+        (self.to > range.from && self.to < range.to) ||
+        (self.from > range.from && self.from < range.to) ||
+        (self.from < range.from && self.from > range.to) ||
+        (self.from > range.from && self.to < range.to) ||
+        self.from == range.from ||
+        self.to == range.to
     }
     
     init(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) {

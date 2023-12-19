@@ -10,6 +10,13 @@ extension Date {
           to: Date())!
     }
     
+    static var tenMinutesAgo: Self {
+        return Calendar.current.date(
+          byAdding: .minute,
+          value: -10,
+          to: Date())!
+    }
+    
     static var oneHourAgo: Self {
         return Calendar.current.date(
           byAdding: .hour,
@@ -48,5 +55,54 @@ extension Date {
 extension Date {
     var unixMillisSinceEpoch: Int {
         return Int(self.timeIntervalSince1970 * 1000)
+    }
+}
+
+enum Since {
+    
+    case oneMinuteAgo
+    case tenMinutesAgo
+    case oneHourAgo
+    case twentyFourHoursAgo
+    case oneWeekAgo
+    case oneMonthAgo
+    case startOfThisYear
+    
+    var date: Date {
+        switch self {
+            case .oneMinuteAgo:
+                return .oneMinuteAgo
+            case .tenMinutesAgo:
+                return .tenMinutesAgo
+            case .oneHourAgo:
+                return .oneHourAgo
+            case .twentyFourHoursAgo:
+                return .twentyFourHoursAgo
+            case .oneWeekAgo:
+                return .oneWeekAgo
+            case .oneMonthAgo:
+                return .oneMonthAgo
+            case .startOfThisYear:
+                return .startOfThisYear
+        }
+    }
+    
+    var representativeMillis: Timestamped.UnixMillis {
+        switch self {
+            case .oneMinuteAgo:
+                60000
+            case .tenMinutesAgo:
+                600000
+            case .oneHourAgo:
+                3600000
+            case .twentyFourHoursAgo:
+                86400000
+            case .oneWeekAgo:
+                604800000
+            case .oneMonthAgo:
+                2629746000
+            case .startOfThisYear:
+                Date.startOfThisYear.unixMillisSinceEpoch
+        }
     }
 }

@@ -15,10 +15,16 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     private var saveError = false
     private var displayUpdateErrorCount = 0
     
+    private let graphicsWidth = 320
+    private let graphicsHeight = 240
+    private let flushInterval: TimeInterval = .oneMinute
+    private let graphSince: Since = .oneMinuteAgo
+    private let screenUpdateInterval: TimeInterval = 1.0
+    
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
         self.temperatureSensors = temperatureSensors
-        self.graphicsContext = GraphicsContext(size: .init(width: 320, height: 240))
-        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: .twentyFourHours), storeName: temperatureSensors.first!.name)
+        self.graphicsContext = GraphicsContext(size: .init(width: graphicsWidth, height: graphicsHeight))
+        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: flushInterval), storeName: temperatureSensors.first!.name)
         self.display = display
         startSensorMonitoring()
         startDisplayUpdates()
@@ -73,45 +79,39 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                                                                    color: .gray)
                     
                     self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
-                    
-                    if let graphCommand = try await drawCommandForGraph() {
-                        self.graphicsContext.queueCommand(graphCommand)
-                    }
-                    
-                    self.graphicsContext.render()
-                    
-                    do {
-                        try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
-                    } catch {
-                        self.displayUpdateErrorCount += 1
-                    }
                 }
                 
-                try await Task.sleep(for: .seconds(1))
+                // Graph
+                let readings = try await self.readingStore.retrieve(since: graphSince.date)
+                if let normalizedPoints = try await normalizedPointsForGraph(since: graphSince, readings: readings) {
+                    let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
+                        .sorted(by: { $0.x > $1.x })
+                        .decimate(into: graphicsWidth)
+                    )
+                    self.graphicsContext.queueCommand(graphCommand)
+                }
+
+                let things = ["Hey"].decimate(into: 1)
+                
+                // Finally:
+                self.graphicsContext.render()
+
+                do {
+                    try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                } catch {
+                    self.displayUpdateErrorCount += 1
+                }
+
+                try await Task.sleep(for: .seconds(screenUpdateInterval))
             }
         }
     }
     
-    private func drawCommandForGraph() async throws -> GraphicsCommand? {
-        
-        let readings = try await self.readingStore.retrieve(since: .oneHourAgo)
-        let maxX = readings.max(by: { $1.timestamp > $0.timestamp })!.timestamp
-        let maxY = readings.max(by: { $1.output.floatValue > $0.output.floatValue })!.output.floatValue
-        
-        guard maxX > 0, maxY > 0 else {
-            return nil
-        }
-        
-        let normalizedPoints = readings.map {
-            Point(Double($0.timestamp / maxX), Double($0.output.floatValue / maxY))
-        }
-        
-        guard normalizedPoints.isNotEmpty else {
-            return nil
-        }
+    private func drawCommandForGraph(normalizedPoints: [Point]) -> GraphicsCommand {
         
         var lines: [Line] = []
-        var lastPoint = normalizedPoints.first!
+        var lastPoint = normalizedPoints.first! // TODO: Address the force-unwrap
+        
         for point in normalizedPoints {
             lines.append(Line(lastPoint.x, lastPoint.y, point.x, point.y))
             lastPoint = point
@@ -120,6 +120,36 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         let payload = DrawLinesPayload(lines: lines, width: 0.05, color: .white)
         
         return .drawLines(payload)
+    }
+    
+    private func normalizedPointsForGraph(since: Since, readings: [AnyStorableReading<Temperature.T>]) -> [Point]? {
+        
+        guard readings.isNotEmpty else {
+            return nil
+        }
+        
+        let minTime = readings.min(by: { $1.timestamp > $0.timestamp })!.timestamp
+        let maxTime = readings.max(by: { $1.timestamp > $0.timestamp })!.timestamp
+
+        let maxOutput = readings.max(by: { $1.output.floatValue > $0.output.floatValue })!.output.floatValue
+        
+        guard maxOutput > 0 else { // TODO: This won't work for temps / readings below 0
+            return nil
+        }
+        
+        let normalizedPoints: [Point] = readings.map {
+            
+            let x = Double($0.timestamp - minTime) / Double(since.representativeMillis)
+            let y = Double($0.output.floatValue / maxOutput)
+            
+            return Point(x, y)
+        }
+        
+        guard normalizedPoints.isNotEmpty else {
+            return nil
+        }
+        
+        return normalizedPoints
     }
 
     public func didGetReading<T>(_ reading: T, sender: any Sensor<T>) async {

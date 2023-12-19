@@ -11,6 +11,14 @@ extension TimeInterval {
         60.0
     }
     
+    static var threeMinutes: Self {
+        180.0
+    }
+    
+    static var tenMinutes: Self {
+        600.0
+    }
+    
     static var oneHour: Self {
         3600.0
     }
