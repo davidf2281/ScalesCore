@@ -197,25 +197,5 @@ enum TimestampRangeProvider {
     static func nextContainingRange(after: TimestampRange) throws -> TimestampRange {
         return try Self.containingRange(for: after.to + 1)
     }
-    
-    // TODO: Delete this method, it's probably redundant
-    static func containingRanges(between start: Timestamped.UnixMillis, and end: Timestamped.UnixMillis) throws -> [TimestampRange] {
-        
-        var ranges: [TimestampRange] = []
-        
-        var accumulatedMoment = start
-        
-        while accumulatedMoment < end {
-            ranges.append(try Self.containingRange(for: accumulatedMoment))
-            accumulatedMoment += Self.rangeLength
-        }
-        
-        //
-        let firstRange = try Self.containingRange(for: start)
-        
-        
-        
-        return []
-    }
 }
 
