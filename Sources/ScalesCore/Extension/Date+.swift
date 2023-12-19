@@ -3,6 +3,13 @@ import Foundation
 
 extension Date {
     
+    static var oneMinuteAgo: Self {
+        return Calendar.current.date(
+          byAdding: .minute,
+          value: -1,
+          to: Date())!
+    }
+    
     static var oneHourAgo: Self {
         return Calendar.current.date(
           byAdding: .hour,
