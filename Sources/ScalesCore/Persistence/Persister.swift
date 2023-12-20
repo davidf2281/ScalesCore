@@ -97,7 +97,7 @@ actor Persister<T: PersistableItem> {
             }
             
             guard filteredFileURLs.isNotEmpty else {
-                return []
+                return matchingItems
             }
             
             // Get data from the files
