@@ -144,7 +144,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
             let x = Double($0.timestamp - minTimestamp) / Double(since.representativeMillis)
             let y = maxOutput == 0 ? 0 : Double(($0.output.floatValue - zeroOffset) / range)
             
-            if (y < 0 && y > 1) {
+            if (y < 0 || y > 1) {
                 print("y: \(y) for floatValue: \($0.output.floatValue), zeroOffset: \(zeroOffset), range: \(range)")
             }
             
