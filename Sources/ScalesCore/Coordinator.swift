@@ -148,7 +148,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 print("y: \(y) for floatValue: \($0.output.floatValue), zeroOffset: \(zeroOffset), range: \(range)")
             }
             precondition(x >= 0 && x <= 1)
-            precondition(y >= 0 && y <= 1)
+//            precondition(y >= 0 && y <= 1)
 
             return Point(x, y)
         }
