@@ -31,6 +31,13 @@ extension Date {
           to: Date())!
     }
     
+    static var twelveHoursAgo: Self {
+        return Calendar.current.date(
+          byAdding: .hour,
+          value: -12,
+          to: Date())!
+    }
+    
     static var twentyFourHoursAgo: Self {
         return Calendar.current.date(
           byAdding: .hour,
@@ -71,6 +78,7 @@ enum Since {
     case tenMinutesAgo
     case oneHourAgo
     case sixHoursAgo
+    case twelveHoursAgo
     case twentyFourHoursAgo
     case oneWeekAgo
     case oneMonthAgo
@@ -86,6 +94,8 @@ enum Since {
                 return .oneHourAgo
             case .sixHoursAgo:
                 return .sixHoursAgo
+            case .twelveHoursAgo:
+                return .twelveHoursAgo
             case .twentyFourHoursAgo:
                 return .twentyFourHoursAgo
             case .oneWeekAgo:
@@ -107,6 +117,8 @@ enum Since {
                 3600000
             case.sixHoursAgo:
                 21600000
+            case .twelveHoursAgo:
+                43200000
             case .twentyFourHoursAgo:
                 86400000
             case .oneWeekAgo:

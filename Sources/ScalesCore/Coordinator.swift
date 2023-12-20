@@ -18,7 +18,8 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     private let graphicsWidth = 320
     private let graphicsHeight = 240
     private let flushInterval: TimeInterval = .oneHour
-    private let graphSince: Since = .sixHoursAgo
+    private let graphSinces: [Since] = [.oneHourAgo, .twelveHoursAgo, .twentyFourHoursAgo]
+    private var currentSinceIndex: Int = 0
     private let screenUpdateInterval: TimeInterval = 10.0
     
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
@@ -51,9 +52,24 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     
     func startDisplayUpdates() {
         
-        Task {
+        Task { [weak self] in
             
+            guard let self else { return }
+
             while(true) {
+                
+                // Graph
+                let graphSince = graphSinces[currentSinceIndex]
+                let readings = try await self.readingStore.retrieve(since: graphSince.date)
+                if let normalizedPoints = try await normalizedPointsForGraph(since: graphSince, readings: readings) {
+                    let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
+                        .sorted(by: { $0.x > $1.x })
+                        .decimate(into: graphicsWidth)
+                    )
+                    self.graphicsContext.queueCommand(graphCommand)
+                }
+                currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
+                
                 if let reading = await self.readingStore.retrieveLatest() {
                     
                     // Temperature
@@ -80,18 +96,6 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     
                     self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
                 }
-                
-                // Graph
-                let readings = try await self.readingStore.retrieve(since: graphSince.date)
-                if let normalizedPoints = try await normalizedPointsForGraph(since: graphSince, readings: readings) {
-                    let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
-                        .sorted(by: { $0.x > $1.x })
-                        .decimate(into: graphicsWidth)
-                    )
-                    self.graphicsContext.queueCommand(graphCommand)
-                }
-
-                let things = ["Hey"].decimate(into: 1)
                 
                 // Finally:
                 self.graphicsContext.render()

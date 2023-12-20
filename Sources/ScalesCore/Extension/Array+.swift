@@ -20,3 +20,16 @@ extension Array {
         return result
     }
 }
+
+extension Array {
+    func nextIndexWrapping(index: Int) -> Int {
+        
+        let incrementedIndex = index + 1
+        
+        if (0..<self.endIndex).contains(incrementedIndex) {
+            return incrementedIndex
+        }
+        
+        return 0
+    }
+}

@@ -64,6 +64,7 @@ actor Persister<T: PersistableItem> {
         try encodedPersistables.write(to: filePath, options: [.atomic])
     }
     
+    // TODO: Write some tests for this craziness, especially the end-loop logic to move to the next folder
     func retrieve(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) throws -> [T] {
         
         let searchRange = TimestampRange(from: from, to: to)
@@ -81,6 +82,9 @@ actor Persister<T: PersistableItem> {
             
             // Find all files within or overlapping our search range
             guard let fileURLs = try? FileManager.default.contentsOfDirectory(at: searchFolder, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else {
+                // Note: we'll get to here if we've done an iteration and got to the point of not being able
+                // to find the next folder. So we don't throw an error here; we return our results.
+                // TODO: Finesse things so we're not relying on an error being thrown
                 return matchingItems
             }
             
@@ -93,7 +97,7 @@ actor Persister<T: PersistableItem> {
             }
             
             guard filteredFileURLs.isNotEmpty else {
-                return matchingItems
+                return []
             }
             
             // Get data from the files
