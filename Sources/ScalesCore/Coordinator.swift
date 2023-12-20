@@ -142,13 +142,10 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         let normalizedPoints: [Point] = readings.map {
             
             let x = Double($0.timestamp - minTimestamp) / Double(since.representativeMillis)
-            let y = maxOutput == 0 ? 0 : Double(($0.output.floatValue - zeroOffset) / range)
-            
-//            if (y < 0 || y > 1) {
-                print("y: \(y) for floatValue: \($0.output.floatValue), zeroOffset: \(zeroOffset), range: \(range)")
-//            }
+            let y = range == 0 ? 0 : Double(($0.output.floatValue - zeroOffset) / range)
+
             precondition(x >= 0 && x <= 1)
-//            precondition(y >= 0 && y <= 1)
+            precondition(y >= 0 && y <= 1)
 
             return Point(x, y)
         }
