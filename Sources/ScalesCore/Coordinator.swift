@@ -17,10 +17,10 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     
     private let graphicsWidth = 320
     private let graphicsHeight = 240
-    private let flushInterval: TimeInterval = .oneMinute
-    private let graphSinces: [Since] = [.oneMinuteAgo]
+    private let flushInterval: TimeInterval = .oneHour
+    private let graphSinces: [Since] = [.oneHourAgo, .twelveHoursAgo, .twentyFourHoursAgo]
     private var currentSinceIndex: Int = 0
-    private let screenUpdateInterval: TimeInterval = 1.0
+    private let screenUpdateInterval: TimeInterval = 10.0
     
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
         self.temperatureSensors = temperatureSensors
