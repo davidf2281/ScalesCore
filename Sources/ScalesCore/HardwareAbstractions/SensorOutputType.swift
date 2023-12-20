@@ -2,6 +2,7 @@
 import Foundation
 
 public enum SensorOutputType: Codable {
+    
     case temperature(unit: TemperatureUnit)
     case barometricPressure(unit: PressureUnit)
     case humidity(unit: HumidityUnit)

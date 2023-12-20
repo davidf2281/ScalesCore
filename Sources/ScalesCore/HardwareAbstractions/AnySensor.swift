@@ -3,12 +3,12 @@ import Foundation
 
 public final class AnySensor<S: Sensor>: Sensor {
     
+    public typealias T = S.T
+
     public var readings: AsyncStream<S.T> {
         return self.unerasedSensor.readings
     }
-    
-    public typealias T = S.T
-    
+        
     public var id: String {
         unerasedSensor.id
     }

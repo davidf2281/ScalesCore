@@ -4,16 +4,16 @@ public enum GraphicsCommand {
     case drawLines(DrawLinesPayload)
 }
 
-protocol CommandPayload {}
+protocol GraphicsCommandPayload {}
 
-public struct DrawTextPayload: CommandPayload {
+public struct DrawTextPayload: GraphicsCommandPayload {
     let string: String
     let point: Point
     let font: Font
     let color: Color24
 }
 
-public struct DrawLinesPayload: CommandPayload {
+public struct DrawLinesPayload: GraphicsCommandPayload {
     
     let lines: [Line]
     let width: Double

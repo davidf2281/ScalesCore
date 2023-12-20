@@ -144,14 +144,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
             let x = Double($0.timestamp - minTimestamp) / Double(since.representativeMillis)
             let y = range == 0 ? 0 : Double(($0.output.floatValue - zeroOffset) / range)
 
-            precondition(x >= 0 && x <= 1)
-            precondition(y >= 0 && y <= 1)
-
             return Point(x, y)
-        }
-        
-        guard normalizedPoints.isNotEmpty else {
-            return nil
         }
         
         return normalizedPoints

@@ -24,6 +24,6 @@ extension TimeInterval {
     }
     
     static var twentyFourHours: Self {
-        86400
+        86400.0
     }
 }
