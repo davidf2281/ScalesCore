@@ -22,7 +22,7 @@ extension Sensor {
     }
 }
 
-public protocol SensorOutput: Sendable, Codable, Comparable, Numeric, FloatingPoint, BinaryInteger {
+public protocol SensorOutput: Sendable, Codable, Comparable, Numeric, FloatingPoint {
     var stringValue: String { get }
     var floatValue: Float { get }
 }

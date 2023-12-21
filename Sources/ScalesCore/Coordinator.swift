@@ -61,7 +61,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 let readings: [AnyStorableReading<Temperature.T>]
                 switch graphSince {
                     case .oneHourAgo:
-                        readings = try await self.readingStore.retrieve(since: graphSince.date).averaged(window: .oneMinute)
+                        readings = try await self.readingStore.retrieve(since: graphSince.date).oversample(window: .oneMinute)
                     default:
                         readings = try await self.readingStore.retrieve(since: graphSince.date)
                 }
@@ -153,5 +153,46 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         }
         
         return normalizedPoints
+    }
+}
+
+extension Array {
+    
+    func oversample<T>(window: Timestamped.UnixMillis) -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
+        
+        guard self.isNotEmpty else {
+            return []
+        }
+        
+        // Collect all readings into window buckets, for later averaging
+        var windowBuckets: [[AnyStorableReading<T>]] = []
+        var currentBucket: [AnyStorableReading<T>] = []
+        
+        var currentWindow: TimestampRange = TimestampRange(from: self.first!.timestamp, to: self.first!.timestamp + window)
+        for reading in self {
+            
+            if currentWindow.doesNotContain(reading.timestamp) {
+                windowBuckets.append(currentBucket)
+                currentBucket = []
+                currentWindow = TimestampRange(from: reading.timestamp, to: reading.timestamp + window)
+            }
+            
+            currentBucket.append(reading)
+        }
+        
+        return windowBuckets.compactMap { bucket in
+            var outputAccumulator: T = 0
+            var timestampAccumulator: Timestamped.UnixMillis = 0
+            for reading in bucket {
+                outputAccumulator += reading.output
+                timestampAccumulator += reading.timestamp
+            }
+            
+            guard let castCount = T(exactly: bucket.count) else {
+                return nil
+            }
+            
+            return AnyStorableReading(value: outputAccumulator / castCount, timestamp: timestampAccumulator / bucket.count)
+        }
     }
 }
