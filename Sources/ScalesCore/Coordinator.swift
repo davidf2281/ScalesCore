@@ -10,16 +10,14 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     let readingStore: HybridDataStore<Temperature.T>
     let display: Display
 
-//    private var max: T? = nil
-//    private var min: T? = nil
     private var saveError = false
     private var displayUpdateErrorCount = 0
-    
+    private var currentSinceIndex: Int = 0
+
     private let graphicsWidth = 320
     private let graphicsHeight = 240
     private let flushInterval: TimeInterval = .oneHour
     private let graphSinces: [Since] = [.oneHourAgo, .twelveHoursAgo, .twentyFourHoursAgo]
-    private var currentSinceIndex: Int = 0
     private let screenUpdateInterval: TimeInterval = 10.0
     
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
@@ -31,7 +29,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         startDisplayUpdates()
     }
     
-    func startSensorMonitoring() {
+    private func startSensorMonitoring() {
         
         for sensor in temperatureSensors {
             
@@ -50,7 +48,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         }
     }
     
-    func startDisplayUpdates() {
+    private func startDisplayUpdates() {
         
         Task { [weak self] in
             
@@ -60,7 +58,14 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 
                 // Graph
                 let graphSince = graphSinces[currentSinceIndex]
-                let readings = try await self.readingStore.retrieve(since: graphSince.date)
+                let readings: [AnyStorableReading<Temperature.T>]
+                switch graphSince {
+                    case .oneHourAgo:
+                        readings = try await self.readingStore.retrieve(since: graphSince.date).oversample(window: .oneMinute)
+                    default:
+                        readings = try await self.readingStore.retrieve(since: graphSince.date)
+                }
+                
                 if let normalizedPoints = try await normalizedPointsForGraph(since: graphSince, readings: readings) {
                     let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
                         .sorted(by: { $0.x > $1.x })
@@ -149,45 +154,45 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         
         return normalizedPoints
     }
+}
 
-    public func didGetReading<T>(_ reading: T, sender: any Sensor<T>) async {
+extension Array {
     
-     /*   do {
-            let now = Date()
-            try await self.readingStore.save(reading: reading, date: now)
-            self.readingLastStoredDate = now
-            self.saveError = false
-        } catch {
-            self.saveError = true
+    func oversample<T>(window: Timestamped.UnixMillis) -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
+        
+        guard self.isNotEmpty else {
+            return []
         }
         
-        if max == nil {
-            max = reading
+        // Collect all readings into window buckets, for later averaging
+        var windowBuckets: [[AnyStorableReading<T>]] = []
+        var currentBucket: [AnyStorableReading<T>] = []
+        
+        var currentWindow: TimestampRange = TimestampRange(from: self.first!.timestamp, to: self.first!.timestamp + window)
+        for reading in self {
+            
+            if currentWindow.doesNotContain(reading.timestamp) {
+                windowBuckets.append(currentBucket)
+                currentBucket = []
+                currentWindow = TimestampRange(from: reading.timestamp, to: reading.timestamp + window)
+            }
+            
+            currentBucket.append(reading)
         }
         
-        if min == nil {
-            min = reading
+        return windowBuckets.compactMap { bucket in
+            var outputAccumulator: T = 0
+            var timestampAccumulator: Timestamped.UnixMillis = 0
+            for reading in bucket {
+                outputAccumulator += reading.output
+                timestampAccumulator += reading.timestamp
+            }
+            
+            guard let castCount = T(exactly: bucket.count) else {
+                return nil
+            }
+            
+            return AnyStorableReading(value: outputAccumulator / castCount, timestamp: timestampAccumulator / bucket.count)
         }
-   
-        if let max, reading > max {
-            self.max = reading
-        }
-        
-        if let min, reading < min {
-            self.min = reading
-        }
-      
-        // Max temperature
-        if let max {
-            let drawMaxTemperaturePayload = DrawTextPayload(string: max.stringValue, point: .init(0.09, 0.5), font: .init(.system, size: 0.15), color: .red)
-            self.graphicsContext.queueCommand(.drawText(drawMaxTemperaturePayload))
-        }
-        
-        // Min temperature
-        if let min {
-            let drawMinTemperaturePayload = DrawTextPayload(string: min.stringValue, point: .init(0.09, 0.25), font: .init(.system, size: 0.15), color: .red)
-            self.graphicsContext.queueCommand(.drawText(drawMinTemperaturePayload))
-        }
-      */
     }
 }

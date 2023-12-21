@@ -6,6 +6,11 @@ protocol Timestamped {
     var timestamp: UnixMillis { get }
 }
 
+extension Timestamped.UnixMillis {
+    static var oneMinute: Self = 60000
+    static var oneHour: Self = 3600000
+}
+
 protocol PersistableItem: Codable, Timestamped {
     var value: Codable { get }
 }
@@ -146,6 +151,10 @@ struct TimestampRange {
     
     func contains(_ timestamp: Timestamped.UnixMillis) -> Bool {
         self.from <= timestamp && self.to >= timestamp
+    }
+    
+    func doesNotContain(_ timestamp: Timestamped.UnixMillis) -> Bool {
+        !self.contains(timestamp)
     }
     
     func overlaps(range: Self) -> Bool {

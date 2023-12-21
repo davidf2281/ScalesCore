@@ -10,14 +10,14 @@ protocol StorableReading<T>: PersistableItem {
 struct AnyStorableReading<T: SensorOutput>: StorableReading {
     
     let output: T
-    let timestamp: Int
+    let timestamp: Timestamped.UnixMillis
     
     var value: Codable {
         self.output
     }
     
-    init(value: T, date: Date) {
+    init(value: T, timestamp: Timestamped.UnixMillis) {
         self.output = value
-        self.timestamp = date.unixMillisSinceEpoch
+        self.timestamp = timestamp
     }
 }
