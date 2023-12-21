@@ -49,3 +49,48 @@ extension Array {
         return self[index]
     }
 }
+
+extension Array {
+    
+    func averaged<T>(window: Timestamped.UnixMillis) -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
+        
+        guard self.isNotEmpty else {
+            return []
+        }
+        
+        // Collect all readings into window buckets, for later averaging
+        var windowBuckets: [[AnyStorableReading<T>]] = []
+        var currentBucket: [AnyStorableReading<T>] = []
+        var currentWindow: TimestampRange = TimestampRange(from: self.first!.timestamp, to: self.first!.timestamp + window)
+        
+        for reading in self {
+            if currentWindow.doesNotContain(reading.timestamp) {
+                windowBuckets.append(currentBucket)
+                currentBucket = []
+                currentWindow = TimestampRange(from: reading.timestamp, to: reading.timestamp + window)
+            }
+            currentBucket.append(reading)
+        }
+        
+        // Do the averaging
+        return windowBuckets.compactMap { bucket in
+  
+            let averagedTimestamp = bucket.map { Float($0.timestamp) }.averaged
+            let averagedOutput = bucket.map { $0.output }.averaged
+
+            return AnyStorableReading(value: T(averagedOutput), timestamp: Timestamped.UnixMillis(averagedTimestamp))
+        }
+    }
+}
+
+extension Array where Element: FloatingPoint {
+    
+    var averaged: Element {
+        var accumulator: Element = 0
+        for element in self {
+            accumulator += element
+        }
+        
+        return accumulator / Element(self.count)
+    }
+}
