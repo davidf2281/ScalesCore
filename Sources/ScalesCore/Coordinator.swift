@@ -58,14 +58,8 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 
                 // Graph
                 let graphSince = graphSinces[currentSinceIndex]
-                let readings: [AnyStorableReading<Temperature.T>]
-                switch graphSince {
-                    case .oneHourAgo:
-                        readings = try await self.readingStore.retrieve(since: graphSince.date).averaged(window: .oneMinute)
-                    default:
-                        readings = try await self.readingStore.retrieve(since: graphSince.date)
-                }
-                
+                let readings = try await self.readingStore.retrieve(since: graphSince.date)
+
                 if let normalizedPoints = try await normalizedPointsForGraph(since: graphSince, readings: readings) {
                     let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
                         .sorted(by: { $0.x > $1.x })
