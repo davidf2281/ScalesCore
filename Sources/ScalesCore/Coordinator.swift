@@ -11,7 +11,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     let display: Display
 
     private var saveError = false
-    private var displayUpdateErrorCount = 0
+    private var ioErrorCount = 0
     private var currentSinceIndex: Int = 0
 
     private let graphicsWidth = 320
@@ -36,13 +36,20 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
             Task { [weak self] in
                 guard let self else { return }
                 
-                for try await reading in sensor.readings {
-                    do {
-                        try await self.readingStore.save(reading: reading, date: Date())
-                        self.saveError = false
-                    } catch {
-                        self.saveError = true
+                for await readingResult in sensor.readings {
+                    switch readingResult {
+                        case .success(let reading):
+                            do {
+                                try await self.readingStore.save(reading: reading, date: Date())
+                                self.saveError = false
+                            } catch {
+                                self.saveError = true
+                            }
+                            
+                        case .failure(_):
+                            ioErrorCount += 1
                     }
+                   
                 }
             }
         }
@@ -89,7 +96,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                     self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
                     
                     // Update error count
-                    let updateErrorCountPayload = DrawTextPayload(string: "\(self.displayUpdateErrorCount)",
+                    let updateErrorCountPayload = DrawTextPayload(string: "\(self.ioErrorCount)",
                                                                    point: .init(0.8, 0.05),
                                                                    font: .init(.system, size: 0.05),
                                                                    color: .gray)
@@ -103,7 +110,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 do {
                     try await self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
                 } catch {
-                    self.displayUpdateErrorCount += 1
+                    self.ioErrorCount += 1
                 }
 
                 try await Task.sleep(for: .seconds(screenUpdateInterval))
