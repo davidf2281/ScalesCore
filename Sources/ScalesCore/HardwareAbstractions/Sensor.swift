@@ -6,7 +6,7 @@ public protocol Sensor<T>: AnyObject, Identifiable {
     var id: String { get }
     var location: SensorLocation { get }
     var outputType: SensorOutputType { get }
-    var readings: AsyncStream<T> { get }
+    var readings: AsyncThrowingStream<T, Error> { get }
     var erasedToAnySensor: AnySensor<Self> { get }
 }
 
