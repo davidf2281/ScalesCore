@@ -5,7 +5,7 @@ public final class AnySensor<S: Sensor>: Sensor {
     
     public typealias T = S.T
 
-    public var readings: AsyncStream<S.T> {
+    public var readings: AsyncThrowingStream<S.T, Error> {
         return self.unerasedSensor.readings
     }
         

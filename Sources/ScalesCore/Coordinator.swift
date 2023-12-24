@@ -36,7 +36,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
             Task { [weak self] in
                 guard let self else { return }
                 
-                for await reading in sensor.readings {
+                for try await reading in sensor.readings {
                     do {
                         try await self.readingStore.save(reading: reading, date: Date())
                         self.saveError = false
@@ -101,7 +101,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 self.graphicsContext.render()
 
                 do {
-                    try self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                    try await self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
                 } catch {
                     self.displayUpdateErrorCount += 1
                 }

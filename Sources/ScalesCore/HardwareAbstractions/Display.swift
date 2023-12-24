@@ -1,5 +1,5 @@
 
 public protocol Display {
     var resolution: Size { get }
-    func showFrame(_ frameBuffer: FrameBuffer) throws
+    func showFrame(_ frameBuffer: FrameBuffer) async throws
 }
