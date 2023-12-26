@@ -52,7 +52,7 @@ extension Array {
 
 extension Array {
     
-    func averaged<T>(window: Timestamped.UnixMillis) -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
+    func averaged<T: SensorOutput>(window: Timestamped.UnixMillis) -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
         
         guard self.isNotEmpty else {
             return []
@@ -62,7 +62,8 @@ extension Array {
         var windowBuckets: [[AnyStorableReading<T>]] = []
         var currentBucket: [AnyStorableReading<T>] = []
         
-        var currentWindow: TimestampRange = TimestampRange(from: self.first!.timestamp, to: self.first!.timestamp + window)
+        var currentWindow: TimestampRange = TimestampRange(from: self.first!.timestamp, 
+                                                           to: self.first!.timestamp + window)
         for reading in self {
             
             if currentWindow.doesNotContain(reading.timestamp) {
@@ -75,7 +76,8 @@ extension Array {
         }
         
         // Do the averaging
-        return windowBuckets.compactMap { bucket in
+        return windowBuckets.compactMap { (bucket: [AnyStorableReading<T>]) -> AnyStorableReading<T>? in
+            
             var outputAccumulator: T = 0
             var timestampAccumulator: Timestamped.UnixMillis = 0
             for reading in bucket {
@@ -89,5 +91,8 @@ extension Array {
             
             return AnyStorableReading(value: outputAccumulator / castCount, timestamp: timestampAccumulator / bucket.count)
         }
+        
+        let things = ["hi"]
+        let mappedThings: [String] = things.compactMap { _ in nil }
     }
 }

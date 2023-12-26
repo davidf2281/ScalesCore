@@ -5,7 +5,7 @@ protocol DataStore<T>: AnyActor {
     associatedtype T: SensorOutput
     var totalReadingsCount: Int { get async }
     var availableCapacity: Float { get async } // Value between 0 and 1
-    func save(reading: T, date: Date) async throws
+    func save(reading: Reading<T>, date: Date) async throws
     func retrieve(since: Date) async throws -> [AnyStorableReading<T>]
     func retrieveLatest() async -> AnyStorableReading<T>?
 }
@@ -43,9 +43,9 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
         self.persister = try Persister<AnyStorableReading<T>>(storeName: storeName)
     }
     
-    func save(reading: T, date: Date) async throws {
+    func save(reading: Reading<T>, date: Date) async throws {
                 
-        let storableReading = AnyStorableReading(value: reading, timestamp: date.unixMillisSinceEpoch)
+        let storableReading = AnyStorableReading(value: reading.value, timestamp: date.unixMillisSinceEpoch)
         self.latestReading = storableReading
 
         readings.append(storableReading)

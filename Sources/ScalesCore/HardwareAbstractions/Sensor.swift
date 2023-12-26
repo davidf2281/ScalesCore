@@ -6,7 +6,7 @@ public protocol Sensor<T>: AnyObject, Identifiable {
     var id: String { get }
     var location: SensorLocation { get }
     var outputType: SensorOutputType { get }
-    var readings: AsyncStream<Result<T, Error>> { get }
+    var readings: AsyncStream<Result<Reading<T>, Error>> { get }
     var erasedToAnySensor: AnySensor<Self> { get }
 }
 
@@ -20,9 +20,4 @@ extension Sensor {
     var name: String {
         self.outputType.toString + "_" + self.location.toString + "_" + self.id
     }
-}
-
-public protocol SensorOutput: Sendable, Codable, FloatingPoint {
-    var stringValue: String { get }
-    var floatValue: Float { get }
 }
