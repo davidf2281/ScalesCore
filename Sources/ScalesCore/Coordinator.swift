@@ -2,16 +2,16 @@
 import Foundation
 
 public class Coordinator<T: SensorOutput> {
-
+    
     let sensors: [AnySensor<T>]
     let graphicsContext: GraphicsContext
     private var readingStores: [String : HybridDataStore<T>] = [:]
     let display: Display
-
+    
     private var saveError = false
     private var ioErrorCount = 0
     private var currentSinceIndex: Int = 0
-
+    
     private let graphicsWidth = 320
     private let graphicsHeight = 240
     private let flushInterval: TimeInterval = .oneHour
@@ -66,7 +66,7 @@ public class Coordinator<T: SensorOutput> {
     }
     
     private func storeName(for reading: Reading<T>) -> String {
-        return reading.outputType.toString + reading.sensorLocation.toString + reading.sensorID
+        return reading.outputType.toString + "_" + reading.sensorLocation.toString + "_" + reading.sensorID
     }
     
     private func startDisplayUpdates() {

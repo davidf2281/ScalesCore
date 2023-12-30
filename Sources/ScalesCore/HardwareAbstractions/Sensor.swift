@@ -14,9 +14,3 @@ extension Sensor {
         AnySensor(sensor: self)
     }
 }
-
-extension Sensor {
-    var name: String {
-        self.location.toString + "_" + self.id
-    }
-}
