@@ -1,13 +1,11 @@
 
 import Foundation
 
-public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sensor*/> {
+public class Coordinator<T: SensorOutput> {
 
-    let temperatureSensors: [AnySensor<Temperature>]
-//    let pressureSensors: [AnySensor<Pressure>] = []
-//    let humiditySensors: [AnySensor<Humidity>] = []
+    let sensors: [AnySensor<T>]
     let graphicsContext: GraphicsContext
-    let readingStore: HybridDataStore<Temperature.T>
+    private var readingStores: [String : HybridDataStore<T>] = [:]
     let display: Display
 
     private var saveError = false
@@ -20,12 +18,9 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     private let graphSinces: [Since] = [.oneHourAgo, .twelveHoursAgo, .twentyFourHoursAgo]
     private let screenUpdateInterval: TimeInterval = 10.0
     
-    public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
-        self.temperatureSensors = temperatureSensors
+    public init(sensors: [AnySensor<T>], display: Display) throws {
+        self.sensors = sensors
         self.graphicsContext = GraphicsContext(size: .init(width: graphicsWidth, height: graphicsHeight))
-        
-        // TODO: Think on how to create store names
-        self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: flushInterval), storeName: temperatureSensors.first!.name)
         self.display = display
         startSensorMonitoring()
         startDisplayUpdates()
@@ -33,7 +28,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     
     private func startSensorMonitoring() {
         
-        for sensor in temperatureSensors {
+        for sensor in sensors {
             
             Task { [weak self] in
                 guard let self else { return }
@@ -43,7 +38,8 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                         case .success(let readings):
                             do {
                                 for reading in readings {
-                                    try await self.readingStore.save(reading: reading, date: Date())
+                                    let dataStore = try dataStore(for: reading)
+                                    try await dataStore.save(reading: reading, date: Date())
                                 }
                                 self.saveError = false
                             } catch {
@@ -53,10 +49,24 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                         case .failure(_):
                             ioErrorCount += 1
                     }
-                   
                 }
             }
         }
+    }
+    
+    private func dataStore(for reading: Reading<T>) throws -> HybridDataStore<T> {
+        let storeName = storeName(for: reading)
+        if let dataStore = self.readingStores[storeName] {
+            return dataStore
+        } else {
+            let newDataStore = try HybridDataStore<T>(persistencePolicy: .onFullToCapacityAndToSchedule(interval: flushInterval), storeName: storeName)
+            self.readingStores[storeName] = newDataStore
+            return newDataStore
+        }
+    }
+    
+    private func storeName(for reading: Reading<T>) -> String {
+        return reading.outputType.toString + reading.sensorLocation.toString + reading.sensorID
     }
     
     private func startDisplayUpdates() {
@@ -69,54 +79,56 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 
                 // Graph
                 let graphSince = graphSinces[currentSinceIndex]
-                let readings = try await self.readingStore.retrieve(since: graphSince.date)
-
-                if let normalizedPoints = try await normalizedPointsForGraph(since: graphSince, readings: readings) {
-                    let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
-                        .sorted(by: { $0.x > $1.x })
-                        .decimate(into: graphicsWidth)
-                    )
-                    self.graphicsContext.queueCommand(graphCommand)
+                if let dataStore = self.readingStores.first?.value {
+                    let readings = try await dataStore.retrieve(since: graphSince.date)
+                    
+                    if let normalizedPoints = normalizedPointsForGraph(since: graphSince, readings: readings) {
+                        let graphCommand = drawCommandForGraph(normalizedPoints: normalizedPoints
+                            .sorted(by: { $0.x > $1.x })
+                            .decimate(into: graphicsWidth)
+                        )
+                        self.graphicsContext.queueCommand(graphCommand)
+                    }
+                    
+                    currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
+                    
+                    if let reading = await dataStore.retrieveLatest() {
+                        
+                        // Temperature
+                        let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue,
+                                                                     point: .init(0.09, 0.75),
+                                                                     font: .init(.system, size: 0.2),
+                                                                     color: .red)
+                        
+                        self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
+                        
+                        // Reading count
+                        let drawReadingsCountPayload = DrawTextPayload(string: "\(await dataStore.totalReadingsCount)",
+                                                                       point: .init(0.1, 0.05),
+                                                                       font: .init(.system, size: 0.05),
+                                                                       color: .gray)
+                        
+                        self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
+                        
+                        // Update error count
+                        let updateErrorCountPayload = DrawTextPayload(string: "\(self.ioErrorCount)",
+                                                                      point: .init(0.8, 0.05),
+                                                                      font: .init(.system, size: 0.05),
+                                                                      color: .gray)
+                        
+                        self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
+                    }
+                    
+                    // Finally:
+                    self.graphicsContext.render()
+                    
+                    do {
+                        try await self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                    } catch {
+                        self.ioErrorCount += 1
+                    }
                 }
                 
-                currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
-                
-                if let reading = await self.readingStore.retrieveLatest() {
-                    
-                    // Temperature
-                    let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue, 
-                                                                 point: .init(0.09, 0.75),
-                                                                 font: .init(.system, size: 0.2), 
-                                                                 color: .red)
-                    
-                    self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
-                    
-                    // Reading count
-                    let drawReadingsCountPayload = DrawTextPayload(string: "\(await self.readingStore.totalReadingsCount)", 
-                                                                   point: .init(0.1, 0.05),
-                                                                   font: .init(.system, size: 0.05),
-                                                                   color: .gray)
-                    
-                    self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
-                    
-                    // Update error count
-                    let updateErrorCountPayload = DrawTextPayload(string: "\(self.ioErrorCount)",
-                                                                   point: .init(0.8, 0.05),
-                                                                   font: .init(.system, size: 0.05),
-                                                                   color: .gray)
-                    
-                    self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
-                }
-                
-                // Finally:
-                self.graphicsContext.render()
-
-                do {
-                    try await self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
-                } catch {
-                    self.ioErrorCount += 1
-                }
-
                 try await Task.sleep(for: .seconds(screenUpdateInterval))
             }
         }
@@ -137,7 +149,7 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
         return .drawLines(payload)
     }
     
-    private func normalizedPointsForGraph<T>(since: Since, readings: [AnyStorableReading<T>]) -> [Point]? {
+    private func normalizedPointsForGraph<U>(since: Since, readings: [AnyStorableReading<U>]) -> [Point]? {
         
         guard readings.isNotEmpty else {
             return nil

@@ -91,8 +91,5 @@ extension Array {
             
             return AnyStorableReading(value: outputAccumulator / castCount, timestamp: timestampAccumulator / bucket.count)
         }
-        
-        let things = ["hi"]
-        let mappedThings: [String] = things.compactMap { _ in nil }
     }
 }
