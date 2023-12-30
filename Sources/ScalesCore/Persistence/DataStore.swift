@@ -43,21 +43,6 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
         self.persister = try Persister<AnyStorableReading<T>>(storeName: storeName)
     }
     
-    func save(reading: Reading<T>, date: Date) async throws {
-                
-        // TODO: Separate readings by sensor name (add to arguments here probably)
-        
-        let storableReading = AnyStorableReading(value: reading.value, timestamp: date.unixMillisSinceEpoch)
-        self.latestReading = storableReading
-
-        readings.append(storableReading)
-        
-        if shouldFlushToDisk {
-            try await flushToDisk()
-            self.readings.removeAll()
-        }
-    }
-    
     private var shouldFlushToDisk: Bool {
         
         if readings.count >= self.capacity {
@@ -75,6 +60,21 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
                 } else {
                     return false
                 }
+        }
+    }
+    
+    func save(reading: Reading<T>, date: Date) async throws {
+                
+        // TODO: Separate readings by sensor name (add to arguments here probably)
+        
+        let storableReading = AnyStorableReading(value: reading.value, timestamp: date.unixMillisSinceEpoch)
+        self.latestReading = storableReading
+
+        readings.append(storableReading)
+        
+        if shouldFlushToDisk {
+            try await flushToDisk()
+            self.readings.removeAll()
         }
     }
   
