@@ -40,7 +40,7 @@ extension Array {
     }
 }
 
-extension Array {
+public extension Array {
     subscript(safe index: Int) -> Element? {
         guard self.isNotEmpty, index >= 0, index < endIndex else {
             return nil
