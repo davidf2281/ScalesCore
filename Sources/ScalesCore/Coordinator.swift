@@ -23,6 +23,8 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
     public init(temperatureSensors: [AnySensor<Temperature>], display: Display) throws {
         self.temperatureSensors = temperatureSensors
         self.graphicsContext = GraphicsContext(size: .init(width: graphicsWidth, height: graphicsHeight))
+        
+        // TODO: Think on how to create store names
         self.readingStore = try HybridDataStore(persistencePolicy: .onFullToCapacityAndToSchedule(interval: flushInterval), storeName: temperatureSensors.first!.name)
         self.display = display
         startSensorMonitoring()
@@ -38,9 +40,11 @@ public class Coordinator<Temperature: Sensor/*, Pressure: Sensor, Humidity: Sens
                 
                 for await readingResult in sensor.readings {
                     switch readingResult {
-                        case .success(let reading):
+                        case .success(let readings):
                             do {
-                                try await self.readingStore.save(reading: reading, date: Date())
+                                for reading in readings {
+                                    try await self.readingStore.save(reading: reading, date: Date())
+                                }
                                 self.saveError = false
                             } catch {
                                 self.saveError = true

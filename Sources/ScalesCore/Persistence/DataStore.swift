@@ -45,6 +45,8 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
     
     func save(reading: Reading<T>, date: Date) async throws {
                 
+        // TODO: Separate readings by sensor name (add to arguments here probably)
+        
         let storableReading = AnyStorableReading(value: reading.value, timestamp: date.unixMillisSinceEpoch)
         self.latestReading = storableReading
 

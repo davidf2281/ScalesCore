@@ -224,4 +224,3 @@ enum TimestampRangeProvider {
         return try Self.containingRange(for: after.to + 1)
     }
 }
-
