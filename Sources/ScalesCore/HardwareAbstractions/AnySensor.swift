@@ -17,10 +17,6 @@ public final class AnySensor<S: Sensor>: Sensor {
         unerasedSensor.location
     }
     
-    public var outputType: SensorOutputType {
-        unerasedSensor.outputType
-    }
-    
     private let unerasedSensor: any Sensor<S.T>
     
     init(sensor: any Sensor<S.T>) {
