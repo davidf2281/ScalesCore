@@ -15,7 +15,7 @@ public class Coordinator<T: SensorOutput> {
     private let graphicsWidth = 320
     private let graphicsHeight = 240
     private let flushInterval: TimeInterval = .oneHour
-    private let graphSinces: [Since] = [.oneHourAgo, .twelveHoursAgo, .twentyFourHoursAgo]
+    private let graphSinces: [Since] = [.oneHourAgo, .twelveHoursAgo, .twentyFourHoursAgo, .oneWeekAgo]
     private let screenUpdateInterval: TimeInterval = 10.0
     
     public init(sensors: [AnySensor<T>], display: Display) throws {
