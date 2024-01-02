@@ -38,6 +38,7 @@ public class Coordinator<T: SensorOutput> {
                         case .success(let readings):
                             do {
                                 for reading in readings {
+                                    print("Reading: \(reading.value)")
                                     let dataStore = try dataStore(for: reading)
                                     try await dataStore.save(reading: reading, date: Date())
                                 }
