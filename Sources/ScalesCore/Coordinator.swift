@@ -52,8 +52,6 @@ public class Coordinator<T: SensorOutput> {
                             print("Sensor: \(sensor.id)")
                             ioErrorCount += 1
                     }
-                    
-                    try? await Task.sleep(for: .milliseconds(500))
                 }
             }
         }
@@ -114,8 +112,6 @@ public class Coordinator<T: SensorOutput> {
                         self.graphicsContext.queueCommand(graphCommand)
                     }
                     
-                    currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
-                    
                     if let reading = await dataStore.retrieveLatest() {
                         
                         // Reading value
@@ -135,6 +131,8 @@ public class Coordinator<T: SensorOutput> {
                         self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
                     }
                 }
+                
+                currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
                 
                 // Update error count
                 let updateErrorCountPayload = DrawTextPayload(string: "\(self.ioErrorCount)",
