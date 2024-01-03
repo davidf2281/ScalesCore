@@ -100,9 +100,7 @@ public class Coordinator<T: SensorOutput> {
                     }
                     
                     let readings = try await dataStore.retrieve(since: graphSince.date)
-                    
-                    print("Got \(readings.count) for graphSince of \(graphSince.date)")
-                    
+                                        
                     if let normalizedPoints = normalizedPointsForGraph(since: graphSince, readings: readings) {
                         let graphCommand = drawCommandForGraph(
                             color: graphColor,
