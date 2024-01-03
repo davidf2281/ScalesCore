@@ -43,6 +43,7 @@ public class Coordinator<T: SensorOutput> {
                                 }
                                 self.saveError = false
                             } catch {
+                                print("Readng error: \(error.localizedDescription)")
                                 self.saveError = true
                             }
                             
