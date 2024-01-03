@@ -1,7 +1,7 @@
 
 import Foundation
 
-public enum SensorOutputType: Codable {
+public enum SensorOutputType: Codable, Equatable {
     
     case temperature(unit: TemperatureUnit)
     case barometricPressure(unit: PressureUnit)

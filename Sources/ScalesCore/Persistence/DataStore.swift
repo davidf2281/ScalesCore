@@ -21,6 +21,9 @@ enum DataStoreError: Error {
 
 actor HybridDataStore<T: SensorOutput>: DataStore {
 
+    let associatedSensor: AnySensor<T>
+    let associatedOutputType: SensorOutputType
+    
     private let capacity: Int = 100000
     private let persister: Persister<AnyStorableReading<T>>
     private var lastFlushDate: Date = Date()
@@ -36,8 +39,10 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
         Float(totalReadingsCount) / Float(capacity)
     }
         
-    init(persistencePolicy: DataStorePersistencePolicy, storeName: String) throws {
+    init(persistencePolicy: DataStorePersistencePolicy, storeName: String, associatedSensor: AnySensor<T>, associatedOutputType: SensorOutputType) throws {
         self.persistencePolicy = persistencePolicy
+        self.associatedSensor = associatedSensor
+        self.associatedOutputType = associatedOutputType
         self.readings = []
         self.readings.reserveCapacity(capacity)
         self.persister = try Persister<AnyStorableReading<T>>(storeName: storeName)
