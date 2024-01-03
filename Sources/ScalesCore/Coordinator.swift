@@ -43,11 +43,11 @@ public class Coordinator<T: SensorOutput> {
                                 }
                                 self.saveError = false
                             } catch {
-                                print("Readng error: \(error.localizedDescription)")
                                 self.saveError = true
                             }
                             
-                        case .failure(_):
+                        case .failure(let error):
+                            print("Readng error: \(error.localizedDescription)")
                             ioErrorCount += 1
                     }
                     
