@@ -77,8 +77,10 @@ actor Persister<T: PersistableItem> {
         // If the search starts before the epoch, nudge it to start at the epoch
         let adjustedFrom: Timestamped.UnixMillis = from.isBeforeEpoch ? TimestampRangeProvider.startingEpoch : from
  
-        // Find the directory containing the start of our search range
+        // Find the range containing the start of our search
         let startingContainerRange = try TimestampRangeProvider.containingRange(for: adjustedFrom)
+        
+        // TODO: Next: Instead of the while loop, get a bounded array of containing ranges for the folder names, from adjustedFrom until 'to', and iterate in a for loop until the data's timestamp exceeds 'to'. Remember to account for the fact that the data can go beyond the bounds of its containing folder by TimestampRangeProvider.rangeLength millis.
         
         var currentContainerRange = startingContainerRange
         
@@ -193,8 +195,10 @@ enum TimestampRangeProvider {
     
     typealias Millis = Int
     
+    /* --- DO NOT CHANGE these two properties as this would break existing folder structures --- */
     static let startingEpoch: Timestamped.UnixMillis = 1702166400000 // Midnight, 10th December 2023
-    static let rangeLength: Millis = 604800000 // One week. DO NOT CHANGE as this will break existing folder structures.
+    static let rangeLength: Millis = 604800000 // One week.
+    /* ----------------------------------------------------------------------------------------- */
     
     enum TimestampRangeProviderError: Error {
         case timestampBeforeEpoch
