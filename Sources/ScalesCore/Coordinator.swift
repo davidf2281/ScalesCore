@@ -115,8 +115,8 @@ public class Coordinator<T: SensorOutput> {
                         
                         // Reading value
                         let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue,
-                                                                     point: .init(isIndoors ? 0.09 : 0.65, 0.8),
-                                                                     font: .init(.system, size: 0.125),
+                                                                     point: .init(isIndoors ? 0.05 : 0.55, 0.8),
+                                                                     font: .init(.system, size: 0.11),
                                                                      color: graphColor)
                         
                         self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
