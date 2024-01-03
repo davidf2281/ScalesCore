@@ -8,7 +8,7 @@ public enum SensorOutputType: Codable, Equatable {
     case humidity(unit: HumidityUnit)
     
     public enum TemperatureUnit: String, Codable {
-        case celsius = "C"
+        case celsius
     }
 
     public enum PressureUnit: String, Codable {
@@ -22,7 +22,10 @@ public enum SensorOutputType: Codable, Equatable {
     public var displayUnit: String {
         switch self {
             case .temperature(unit: let unit):
-                return unit.rawValue
+                switch unit {
+                    case .celsius:
+                        return "C"
+                }
             case .barometricPressure(unit: let unit):
                 return unit.rawValue
             case .humidity(unit: let unit):
