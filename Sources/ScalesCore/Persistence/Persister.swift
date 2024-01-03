@@ -74,8 +74,11 @@ actor Persister<T: PersistableItem> {
         var matchingItems: [T] = []
         var finished = false
 
+        // If the search starts before the epoch, nudge it to start at the epoch
+        let adjustedFrom: Timestamped.UnixMillis = from.isBeforeEpoch ? TimestampRangeProvider.startingEpoch : from
+ 
         // Find the directory containing the start of our search range
-        let startingContainerRange = try TimestampRangeProvider.containingRange(for: from)
+        let startingContainerRange = try TimestampRangeProvider.containingRange(for: adjustedFrom)
         
         var currentContainerRange = startingContainerRange
         
@@ -191,7 +194,7 @@ enum TimestampRangeProvider {
     typealias Millis = Int
     
     static let startingEpoch: Timestamped.UnixMillis = 1702166400000 // Midnight, 10th December 2023
-    static let rangeLength: Millis = 604800000 // One week
+    static let rangeLength: Millis = 604800000 // One week. DO NOT CHANGE as this will break existing folder structures.
     
     enum TimestampRangeProviderError: Error {
         case timestampBeforeEpoch
@@ -199,7 +202,7 @@ enum TimestampRangeProvider {
     
     static func containingRange(for timeStamp: Timestamped.UnixMillis) throws -> TimestampRange {
         
-        guard timeStamp >= Self.startingEpoch else {
+        guard !timeStamp.isBeforeEpoch else {
             throw TimestampRangeProviderError.timestampBeforeEpoch
         }
         
@@ -220,5 +223,11 @@ enum TimestampRangeProvider {
     
     static func nextContainingRange(after: TimestampRange) throws -> TimestampRange {
         return try Self.containingRange(for: after.to + 1)
+    }
+}
+
+extension Timestamped.UnixMillis {
+    var isBeforeEpoch: Bool {
+        self < TimestampRangeProvider.startingEpoch
     }
 }
