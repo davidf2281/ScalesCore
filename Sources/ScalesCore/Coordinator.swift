@@ -49,6 +49,8 @@ public class Coordinator<T: SensorOutput> {
                         case .failure(_):
                             ioErrorCount += 1
                     }
+                    
+                    try? await Task.sleep(for: .milliseconds(500))
                 }
             }
         }
