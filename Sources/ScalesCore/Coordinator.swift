@@ -40,6 +40,7 @@ public class Coordinator<T: SensorOutput> {
                                 for reading in readings {
                                     let dataStore = try dataStore(for: reading, sensor: sensor)
                                     try await dataStore.save(reading: reading, date: Date())
+                                    print("Saved reading from \(sensor.id), value: \(reading.value)\(reading.outputType.displayUnit)")
                                 }
                                 self.saveError = false
                             } catch {
@@ -47,7 +48,7 @@ public class Coordinator<T: SensorOutput> {
                             }
                             
                         case .failure(let error):
-                            print("Readng error: \(error.localizedDescription)")
+                            print("Reading error: \(error.localizedDescription)")
                             print("Sensor: \(sensor.id)")
                             ioErrorCount += 1
                     }

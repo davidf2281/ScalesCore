@@ -19,6 +19,17 @@ public enum SensorOutputType: Codable, Equatable {
         case rhd
     }
     
+    public var displayUnit: String {
+        switch self {
+            case .temperature(unit: let unit):
+                return unit.rawValue
+            case .barometricPressure(unit: let unit):
+                return unit.rawValue
+            case .humidity(unit: let unit):
+                return unit.rawValue
+        }
+    }
+    
     public var toString: String {
         switch self {
             case .temperature(unit: let unit):
