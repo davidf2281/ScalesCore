@@ -8,7 +8,7 @@ public enum SensorOutputType: Codable, Equatable {
     case humidity(unit: HumidityUnit)
     
     public enum TemperatureUnit: String, Codable {
-        case celsius
+        case celsius = "C"
     }
 
     public enum PressureUnit: String, Codable {
