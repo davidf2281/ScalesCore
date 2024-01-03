@@ -48,6 +48,7 @@ public class Coordinator<T: SensorOutput> {
                             
                         case .failure(let error):
                             print("Readng error: \(error.localizedDescription)")
+                            print("Sensor: \(sensor.id)")
                             ioErrorCount += 1
                     }
                     
