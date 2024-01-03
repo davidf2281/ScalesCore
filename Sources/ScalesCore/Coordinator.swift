@@ -40,7 +40,6 @@ public class Coordinator<T: SensorOutput> {
                                 for reading in readings {
                                     let dataStore = try dataStore(for: reading, sensor: sensor)
                                     try await dataStore.save(reading: reading, date: Date())
-                                    print("Saved reading from \(sensor.id), value: \(reading.value.stringValue)\(reading.outputType.displayUnit)")
                                 }
                                 self.saveError = false
                             } catch {
@@ -102,6 +101,8 @@ public class Coordinator<T: SensorOutput> {
                     
                     let readings = try await dataStore.retrieve(since: graphSince.date)
                     
+                    print("Got \(readings.count) for graphSince of \(graphSince.date)")
+                    
                     if let normalizedPoints = normalizedPointsForGraph(since: graphSince, readings: readings) {
                         let graphCommand = drawCommandForGraph(
                             color: graphColor,
@@ -112,6 +113,7 @@ public class Coordinator<T: SensorOutput> {
                         self.graphicsContext.queueCommand(graphCommand)
                     }
                     
+                    // Numeric displays
                     if let reading = await dataStore.retrieveLatest() {
                         
                         // Reading value

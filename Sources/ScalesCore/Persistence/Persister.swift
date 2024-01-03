@@ -38,9 +38,7 @@ actor Persister<T: PersistableItem> {
         self.dataDirectory = documentsURL
             .appendingPathComponent("PersistedData")
             .appendingPathComponent(storeName)
-                
-        print("Creating directory at \(self.dataDirectory.absoluteString)")
-        
+                        
         try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
     
