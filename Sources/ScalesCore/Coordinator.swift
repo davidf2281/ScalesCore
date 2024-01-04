@@ -30,7 +30,7 @@ public class Coordinator<T: SensorOutput> {
         case flushToDisk(errorDescriptions: [String])
     }
     
-    public func flushAllToDisk() async -> Result<Void, Error> {
+    public func flushAllToDisk() async -> Result<Void, CoordinatorError> {
         var errorDescriptions: [String] = []
         for readingStore in self.readingStores.values {
             do {
