@@ -27,7 +27,7 @@ public class Coordinator<T: SensorOutput> {
     }
     
     public struct CoordinatorError: Error {
-        var errorDescriptions: [String]
+        public var errorDescriptions: [String]
     }
     
     public func flushAllToDisk() async -> Result<Void, CoordinatorError> {
