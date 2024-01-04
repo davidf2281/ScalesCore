@@ -26,9 +26,24 @@ public class Coordinator<T: SensorOutput> {
         startDisplayUpdates()
     }
     
-    public func flushAllToDisk() async throws {
+    public enum CoordinatorError: Error {
+        case flushToDisk(errorDescriptions: [String])
+    }
+    
+    public func flushAllToDisk() async -> Result<Void, Error> {
+        var errorDescriptions: [String] = []
         for readingStore in self.readingStores.values {
-            try await readingStore.flushToDisk()
+            do {
+                try await readingStore.flushToDisk()
+            } catch {
+                errorDescriptions.append("Failed to save reading store data for sensor \(readingStore.associatedSensor.id)")
+            }
+        }
+        
+        if errorDescriptions.isEmpty {
+            return .success(())
+        } else {
+            return .failure(CoordinatorError.flushToDisk(errorDescriptions: errorDescriptions))
         }
     }
     
