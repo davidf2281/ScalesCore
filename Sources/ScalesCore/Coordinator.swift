@@ -88,11 +88,7 @@ public class Coordinator<T: SensorOutput> {
                 // Graph
                 let graphSince = graphSinces[currentSinceIndex]
                 for (index, dataStore) in self.readingStores.values.enumerated() {
-                    
-                    guard dataStore.associatedOutputType == .temperature(unit: .celsius) else {
-                        continue
-                    }
-                    
+        
                     let graphColor: Color24
                     switch dataStore.associatedOutputType {
                         case .temperature:
@@ -126,7 +122,7 @@ public class Coordinator<T: SensorOutput> {
                         // Reading value
                         let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue,
                                                                      point: .init(0.3 * Double(index), 0.8),
-                                                                     font: .init(.system, size: 0.1),
+                                                                     font: .init(.system, size: 0.085),
                                                                      color: graphColor)
                         
                         self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
