@@ -26,6 +26,12 @@ public class Coordinator<T: SensorOutput> {
         startDisplayUpdates()
     }
     
+    public func flushAllToDisk() async throws {
+        for readingStore in self.readingStores.values {
+            try await readingStore.flushToDisk()
+        }
+    }
+    
     private func startSensorMonitoring() {
         
         for sensor in sensors {
