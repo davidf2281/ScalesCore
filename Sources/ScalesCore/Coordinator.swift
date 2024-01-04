@@ -26,11 +26,11 @@ public class Coordinator<T: SensorOutput> {
         startDisplayUpdates()
     }
     
-    public struct CoordinatorError: Error {
+    public struct FlushToDiskError: Error {
         public var errorDescriptions: [String]
     }
     
-    public func flushAllToDisk() async -> Result<Void, CoordinatorError> {
+    public func flushAllToDisk() async -> Result<Void, FlushToDiskError> {
         var errorDescriptions: [String] = []
         for readingStore in self.readingStores.values {
             do {
@@ -43,7 +43,7 @@ public class Coordinator<T: SensorOutput> {
         if errorDescriptions.isEmpty {
             return .success(())
         } else {
-            return .failure(CoordinatorError(errorDescriptions: errorDescriptions))
+            return .failure(FlushToDiskError(errorDescriptions: errorDescriptions))
         }
     }
     
