@@ -26,8 +26,8 @@ public class Coordinator<T: SensorOutput> {
         startDisplayUpdates()
     }
     
-    public enum CoordinatorError: Error {
-        case flushToDisk(errorDescriptions: [String])
+    public struct CoordinatorError: Error {
+        var errorDescriptions: [String]
     }
     
     public func flushAllToDisk() async -> Result<Void, CoordinatorError> {
@@ -43,7 +43,7 @@ public class Coordinator<T: SensorOutput> {
         if errorDescriptions.isEmpty {
             return .success(())
         } else {
-            return .failure(CoordinatorError.flushToDisk(errorDescriptions: errorDescriptions))
+            return .failure(CoordinatorError(errorDescriptions: errorDescriptions))
         }
     }
     
