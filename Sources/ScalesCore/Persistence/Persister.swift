@@ -51,7 +51,7 @@ actor Persister<T: PersistableItem> {
             throw PersisterError.dateRangeCreation
         }
                 
-        let filename = TimestampRange(from: minDateItem.timestamp, to: maxDateItem.timestamp).stringRepresentation + ".json"
+        let filename = try TimestampRange(from: minDateItem.timestamp, to: maxDateItem.timestamp).stringRepresentation + ".json"
         let containingFolderName = try TimestampRangeProvider.containingRange(for: firstElement.timestamp).stringRepresentation
         
         let containingFolder = self.dataDirectory.appendingPathComponent(containingFolderName)
@@ -65,32 +65,28 @@ actor Persister<T: PersistableItem> {
     // TODO: Write some tests for this craziness, especially the end-loop logic to move to the next folder
     func retrieve(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) throws -> [T] {
         
-        let searchRange = TimestampRange(from: from, to: to)
+        let searchRange = try TimestampRange(from: from, to: to)
         var matchingItems: [T] = []
         var finished = false
 
         // If the search starts before the epoch, nudge it up to start at the epoch
         let adjustedFrom: Timestamped.UnixMillis = from.isBeforeEpoch ? TimestampRangeProvider.startingEpoch : from
  
-        // Find the range containing the start of our search
-        let startingContainerRange = try TimestampRangeProvider.containingRange(for: adjustedFrom)
+        // Find the ranges containing the start and end of our search, plus one to cover data whose
+        // timestamps overflow its containing folder's nominal timestamp range
+        let ranges = try TimestampRangeProvider.containingRangesPlusOne(for: adjustedFrom, to: to)
         
-        // TODO: Next: Instead of the while loop, get a bounded array of containing ranges for the folder names, from adjustedFrom until 'to', and iterate in a for loop until the data's timestamp exceeds 'to'. Remember to account for the fact that the data can go beyond the bounds of its containing folder by TimestampRangeProvider.rangeLength millis.
-        
-        var currentContainerRange = startingContainerRange
-        
-        while !finished {
+        for currentContainerRange in ranges {
+            
             let searchFolderName = currentContainerRange.stringRepresentation
             let searchFolder = self.dataDirectory.appendingPathComponent(searchFolderName)
             
             // Find all files within or overlapping our search range
             guard let fileURLs = try? FileManager.default.contentsOfDirectory(at: searchFolder, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else {
-                // Note: we'll get to here if we've done an iteration and got to the point of not being able
-                // to find the next folder. So we don't throw an error here; we return our results.
-                // TODO: Finesse things so we're not relying on an error being thrown
-                return matchingItems
+                continue
             }
             
+            // Consider only .json files matching our timestamp naming pattern
             let filteredFileURLs = fileURLs.filter { fileURL in
                 if let range = try? TimestampRange(string: fileURL.lastPathComponent.replacingOccurrences(of: ".json", with: "")) { // TODO: Make this nicer
                     return range.overlaps(range: searchRange)
@@ -100,7 +96,7 @@ actor Persister<T: PersistableItem> {
             }
             
             guard filteredFileURLs.isNotEmpty else {
-                return matchingItems
+                continue
             }
             
             // Get data from the files
@@ -111,21 +107,7 @@ actor Persister<T: PersistableItem> {
                 
                 // Get values within our desired timestamp range
                 matchingItems += persistedItems.filter { searchRange.contains($0.timestamp) }
-                
-                guard let lastItem = persistedItems.last else {
-                    return matchingItems
-                }
-                
-                // Have we finished?
-                finished = lastItem.timestamp > to
-
-                if finished {
-                    break
-                }
             }
-            
-            // Prepare to search the next folder
-            currentContainerRange = try TimestampRangeProvider.nextContainingRange(after: currentContainerRange)
         }
         
         return matchingItems
@@ -141,6 +123,7 @@ struct TimestampRange {
     
     enum TimestampRangeError: Error {
         case invalidStringRepresentation
+        case invalidRange
     }
     
     var stringRepresentation: String {
@@ -155,6 +138,14 @@ struct TimestampRange {
         !self.contains(timestamp)
     }
     
+    func isFullyBefore(_ timestamp: Timestamped.UnixMillis) -> Bool {
+        self.to < timestamp
+    }
+    
+    func isFullyAfter(_ timestamp: Timestamped.UnixMillis) -> Bool {
+        self.from > timestamp
+    }
+    
     func overlaps(range: Self) -> Bool {
         (self.to > range.from && self.to < range.to) ||
         (self.from > range.from && self.from < range.to) ||
@@ -164,7 +155,10 @@ struct TimestampRange {
         self.to == range.to
     }
     
-    init(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) {
+    init(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) throws {
+        guard from < to else {
+            throw TimestampRangeError.invalidRange
+        }
         self.from = from
         self.to = to
     }
@@ -217,8 +211,32 @@ enum TimestampRangeProvider {
         let start = comparisonTime - Self.rangeLength
         let end = comparisonTime
         
-        return TimestampRange(from: start , to: end)
+        return try TimestampRange(from: start , to: end)
     }
+    
+    /// - Returns: An array of ranges spanning the from and to timestamps, plus one further to cover data whose timestamps overflow its containing folder's nominal timestamp range
+    static func containingRangesPlusOne(for from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) throws -> [TimestampRange] {
+        
+        var ranges: [TimestampRange] = []
+        
+        let startingRange = try containingRange(for: from)
+        ranges.append(startingRange)
+        
+        var finished = false
+        var currentRange = startingRange
+        
+        while(!finished) {
+            let nextRange = try TimestampRangeProvider.nextContainingRange(after: currentRange)
+            ranges.append(nextRange)
+            if nextRange.isFullyAfter(to) {
+                finished = true
+            }
+            currentRange = nextRange
+        }
+        
+        return ranges
+    }
+
     
     static func nextContainingRange(after: TimestampRange) throws -> TimestampRange {
         return try Self.containingRange(for: after.to + 1)
