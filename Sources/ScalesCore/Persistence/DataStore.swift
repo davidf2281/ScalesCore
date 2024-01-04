@@ -48,7 +48,7 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
         self.persister = try Persister<AnyStorableReading<T>>(storeName: storeName)
     }
     
-    func flushToDisk() async throws {
+    public func flushToDisk() async throws {
         try await persister.persist(self.readings)
         self.lastFlushDate = Date()
     }
