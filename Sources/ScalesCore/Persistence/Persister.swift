@@ -6,11 +6,6 @@ protocol Timestamped {
     var timestamp: UnixMillis { get }
 }
 
-extension Timestamped.UnixMillis {
-    static var oneMinute: Self = 60000
-    static var oneHour: Self = 3600000
-}
-
 protocol PersistableItem: Codable, Timestamped {
     var value: Codable { get }
 }
@@ -74,7 +69,7 @@ actor Persister<T: PersistableItem> {
         var matchingItems: [T] = []
         var finished = false
 
-        // If the search starts before the epoch, nudge it to start at the epoch
+        // If the search starts before the epoch, nudge it up to start at the epoch
         let adjustedFrom: Timestamped.UnixMillis = from.isBeforeEpoch ? TimestampRangeProvider.startingEpoch : from
  
         // Find the range containing the start of our search
