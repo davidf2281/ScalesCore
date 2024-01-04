@@ -87,22 +87,25 @@ public class Coordinator<T: SensorOutput> {
                 
                 // Graph
                 let graphSince = graphSinces[currentSinceIndex]
-                for dataStore in self.readingStores.values {
+                for (index, dataStore) in self.readingStores.values.enumerated() {
                     
                     guard dataStore.associatedOutputType == .temperature(unit: .celsius) else {
                         continue
                     }
                     
-                    let isIndoors: Bool
                     let graphColor: Color24
-                    
-                    switch dataStore.associatedSensor.location {
-                        case .indoor(_):
-                            graphColor = .blue
-                            isIndoors = true
-                        case .outdoor(_):
-                            graphColor = .green
-                            isIndoors = false
+                    switch dataStore.associatedOutputType {
+                        case .temperature:
+                            switch dataStore.associatedSensor.location {
+                                case .indoor:
+                                    graphColor = .red
+                                case .outdoor:
+                                    graphColor = .blue
+                            }
+                        case .barometricPressure:
+                            graphColor = .yellow
+                        case .humidity:
+                            graphColor = .gray
                     }
                     
                     let readings = try await dataStore.retrieve(since: graphSince.date)
@@ -122,19 +125,11 @@ public class Coordinator<T: SensorOutput> {
                         
                         // Reading value
                         let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue,
-                                                                     point: .init(isIndoors ? 0.05 : 0.55, 0.8),
-                                                                     font: .init(.system, size: 0.11),
+                                                                     point: .init(0.3 * Double(index), 0.8),
+                                                                     font: .init(.system, size: 0.1),
                                                                      color: graphColor)
                         
                         self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
-                        
-                        // Reading count
-                        let drawReadingsCountPayload = DrawTextPayload(string: "\(await dataStore.totalReadingsCount)",
-                                                                       point: .init(isIndoors ? 0.1 : 0.2, 0.05),
-                                                                       font: .init(.system, size: 0.05),
-                                                                       color: .gray)
-                        
-                        self.graphicsContext.queueCommand(.drawText(drawReadingsCountPayload))
                     }
                 }
                                 
@@ -153,6 +148,7 @@ public class Coordinator<T: SensorOutput> {
                     try await self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
                 } catch {
                     self.ioErrorCount += 1
+                    print("Display update failed: \(error.localizedDescription)")
                 }
                 try await Task.sleep(for: .seconds(screenUpdateInterval))
                 

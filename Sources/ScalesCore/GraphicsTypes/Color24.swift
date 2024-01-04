@@ -29,6 +29,10 @@ public struct Color24 {
         Self.init(red: 0, green: 0, blue: 255)
     }
     
+    public static var yellow: Self {
+        Self.init(red: 128, green: 128, blue: 0)
+    }
+    
     public var packed565: UInt16 {
         let red5 =   UInt16(self.red   & 0b11111000) << 8
         let green6 = UInt16(self.green & 0b11111100) << 3
