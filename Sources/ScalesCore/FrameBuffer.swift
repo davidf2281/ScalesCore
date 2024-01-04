@@ -20,11 +20,14 @@ public class FrameBuffer {
     }
     
     func plotPixel(_ x: Int, _ y: Int, color: Color24) {
-        pixels[index(for: x, y)] = color
+        let index = index(for: x, y)
+        if index < pixels.count {
+            pixels[index] = color
+        }
     }
     
-    func pixel(at x: Int, _ y: Int) -> Color24 {
-        return pixels[index(for: x, y)]
+    func pixel(at x: Int, _ y: Int) -> Color24? {
+        return pixels[safe: index(for: x, y)]
     }
     
     private func index(for x: Int, _ y: Int) -> Int {
