@@ -62,20 +62,18 @@ actor Persister<T: PersistableItem> {
         try encodedPersistables.write(to: filePath, options: [.atomic])
     }
     
-    // TODO: Write some tests for this craziness, especially the end-loop logic to move to the next folder
     func retrieve(from: Timestamped.UnixMillis, to: Timestamped.UnixMillis) throws -> [T] {
         
-        let searchRange = try TimestampRange(from: from, to: to)
-        var matchingItems: [T] = []
-        var finished = false
-
         // If the search starts before the epoch, nudge it up to start at the epoch
         let adjustedFrom: Timestamped.UnixMillis = from.isBeforeEpoch ? TimestampRangeProvider.startingEpoch : from
- 
+        let searchRange = try TimestampRange(from: adjustedFrom, to: to)
+
         // Find the ranges containing the start and end of our search, plus one to cover data whose
         // timestamps overflow its containing folder's nominal timestamp range
         let ranges = try TimestampRangeProvider.containingRangesPlusOne(for: adjustedFrom, to: to)
         
+        var matchingItems: [T] = []
+
         for currentContainerRange in ranges {
             
             let searchFolderName = currentContainerRange.stringRepresentation
@@ -86,7 +84,7 @@ actor Persister<T: PersistableItem> {
                 continue
             }
             
-            // Consider only .json files matching our timestamp naming pattern
+            // Consider only files matching our timestamp naming pattern, and within relevant timestamp range
             let filteredFileURLs = fileURLs.filter { fileURL in
                 if let range = try? TimestampRange(string: fileURL.lastPathComponent.replacingOccurrences(of: ".json", with: "")) { // TODO: Make this nicer
                     return range.overlaps(range: searchRange)
