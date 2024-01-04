@@ -48,6 +48,11 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
         self.persister = try Persister<AnyStorableReading<T>>(storeName: storeName)
     }
     
+    func flushToDisk() async throws {
+        try await persister.persist(self.readings)
+        self.lastFlushDate = Date()
+    }
+    
     private var shouldFlushToDisk: Bool {
         
         if readings.count >= self.capacity {
@@ -112,10 +117,5 @@ actor HybridDataStore<T: SensorOutput>: DataStore {
     
     func retrieveLatest() async -> AnyStorableReading<T>? {
         self.latestReading
-    }
-    
-    private func flushToDisk() async throws {
-        try await persister.persist(self.readings)
-        self.lastFlushDate = Date()
     }
 }
