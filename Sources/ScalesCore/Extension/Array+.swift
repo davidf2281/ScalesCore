@@ -52,7 +52,7 @@ public extension Array {
 
 extension Array {
     
-    func averaged<T: SensorOutput>(window: Timestamped.UnixMillis) -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
+    func averaged<T: SensorOutput>(window: Timestamped.UnixMillis) throws -> [AnyStorableReading<T>] where Element == AnyStorableReading<T> {
         
         guard self.isNotEmpty else {
             return []
@@ -62,14 +62,14 @@ extension Array {
         var windowBuckets: [[AnyStorableReading<T>]] = []
         var currentBucket: [AnyStorableReading<T>] = []
         
-        var currentWindow: TimestampRange = TimestampRange(from: self.first!.timestamp, 
+        var currentWindow: TimestampRange = try TimestampRange(from: self.first!.timestamp,
                                                            to: self.first!.timestamp + window)
         for reading in self {
             
             if currentWindow.doesNotContain(reading.timestamp) {
                 windowBuckets.append(currentBucket)
                 currentBucket = []
-                currentWindow = TimestampRange(from: reading.timestamp, to: reading.timestamp + window)
+                currentWindow = try TimestampRange(from: reading.timestamp, to: reading.timestamp + window)
             }
             
             currentBucket.append(reading)
