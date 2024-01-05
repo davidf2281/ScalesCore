@@ -76,7 +76,7 @@ public struct System: Typeface {
         var boundingBox: Rectangle {
             let xValues = lines.flatMap { [$0.start.x, $0.end.x] }
             let yValues = lines.flatMap { [$0.start.y, $0.end.y] }
-            return .init(0, 0, xValues.max - xValues.min, yValues.max - yValues.min)
+            return .init(xValues.min, yValues.min, xValues.max, yValues.max)
         }
     }
     
