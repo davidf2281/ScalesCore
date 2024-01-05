@@ -45,7 +45,7 @@ public struct System: Typeface {
                 offset = 0
             }
             
-            offsetAccumulator += offset + 1
+            offsetAccumulator += offset + 0.75
             
             guard let glyph = character.glyphName?.glyph else {
                 continue
