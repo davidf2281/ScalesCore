@@ -206,11 +206,11 @@ public class Coordinator<T: SensorOutput> {
     private func drawCommandForGraph(color: Color24, normalizedPoints: [Point]) -> GraphicsCommand {
         
         var lines: [Line] = []
-        var lastPoint = normalizedPoints.first! // TODO: Address the force-unwrap
+        var previousPoint = normalizedPoints.first! // TODO: Address the force-unwrap
         
         for point in normalizedPoints {
-            lines.append(Line(lastPoint.x, lastPoint.y, point.x, point.y))
-            lastPoint = point
+            lines.append(Line(previousPoint.x, previousPoint.y, point.x, point.y))
+            previousPoint = point
         }
         
         let payload = DrawLinesPayload(lines: lines, width: 0.05, color: color)
