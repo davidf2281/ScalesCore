@@ -12,16 +12,23 @@ public class Coordinator<T: SensorOutput> {
     private var ioErrorCount = 0
     private var currentSinceIndex: Int = 0
     
-    private let graphicsWidth = 320
-    private let graphicsHeight = 240
+    private let graphicsWidth: Int
+    private let graphicsHeight: Int
     private let flushInterval: TimeInterval = .oneHour
     private let graphSinces: [Since] = [.oneHourAgo, .twentyFourHoursAgo, .oneWeekAgo, .oneMonthAgo]
     private let screenUpdateInterval: TimeInterval = 10.0
     
     public init(sensors: [AnySensor<T>], display: Display) throws {
         self.sensors = sensors
-        self.graphicsContext = GraphicsContext(size: .init(width: graphicsWidth, height: graphicsHeight))
+        
+        // Always want out logical graphics to be landscape
+        let graphicsResolution: Size = display.aspect == .landscape ? Size(width: display.resolution.width, height: display.resolution.height) : Size(width: display.resolution.height, height: display.resolution.width)
+        
+        self.graphicsContext = GraphicsContext(size: .init(width: graphicsResolution.width, height: graphicsResolution.height))
+        self.graphicsWidth = graphicsResolution.width
+        self.graphicsHeight = graphicsResolution.height
         self.display = display
+        
         startSensorMonitoring()
         startDisplayUpdates()
     }
@@ -116,8 +123,11 @@ public class Coordinator<T: SensorOutput> {
                 try await self.graphicsContext.queueCommands(graphCommands + latestValueCommands + [errorCountCommand])
                 self.graphicsContext.render()
                 
+                let shouldSwapWidthForHeight = (self.display.aspect == .portrait)
+                
                 do {
-                    try await self.display.showFrame(self.graphicsContext.frameBuffer.swappedWidthForHeight)
+                    let frameBuffer = shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
+                    try await self.display.showFrame(frameBuffer)
                 } catch {
                     self.ioErrorCount += 1
                     print("Display update failed: \(error.localizedDescription)")
