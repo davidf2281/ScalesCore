@@ -13,6 +13,10 @@ public class GraphicsContext {
         self.commandQueue.append(command)
     }
     
+    func queueCommands(_ commands: [GraphicsCommand]) {
+        self.commandQueue += commands
+    }
+    
     public func render() {
         
         self.frameBuffer.clear()

@@ -100,59 +100,20 @@ public class Coordinator<T: SensorOutput> {
 
             while(true) {
                 
+                let dataStores = self.readingStores.values
+                
                 // Graph
                 let graphSince = graphSinces[currentSinceIndex]
-                for (index, dataStore) in self.readingStores.values.enumerated() {
-        
-                    let graphColor: Color24
-                    switch dataStore.associatedOutputType {
-                        case .temperature:
-                            switch dataStore.associatedSensor.location {
-                                case .indoor:
-                                    graphColor = .red
-                                case .outdoor:
-                                    graphColor = .blue
-                            }
-                        case .barometricPressure:
-                            graphColor = .yellow
-                        case .humidity:
-                            graphColor = .gray
-                    }
-                    
-                    let readings = try await dataStore.retrieve(since: graphSince.date)
-                                        
-                    if let normalizedPoints = normalizedPointsForGraph(since: graphSince, readings: readings) {
-                        let graphCommand = drawCommandForGraph(
-                            color: graphColor,
-                            normalizedPoints: normalizedPoints
-                                .sorted(by: { $0.x > $1.x })
-                                .decimate(into: graphicsWidth)
-                        )
-                        self.graphicsContext.queueCommand(graphCommand)
-                    }
-                    
-                    // Numeric displays
-                    if let reading = await dataStore.retrieveLatest() {
-                        
-                        // Reading value
-                        let drawTemperaturePayload = DrawTextPayload(string: reading.output.stringValue,
-                                                                     point: .init(0.05, 0.26 * Double(index)),
-                                                                     font: .init(.system, size: 0.085),
-                                                                     color: graphColor)
-                        
-                        self.graphicsContext.queueCommand(.drawText(drawTemperaturePayload))
-                    }
-                }
-                                
-                // Update error count
-                let updateErrorCountPayload = DrawTextPayload(string: "\(self.ioErrorCount)",
-                                                              point: .init(0.8, 0.05),
-                                                              font: .init(.system, size: 0.05),
-                                                              color: .gray)
+                async let graphCommands = try graphCommands(for: dataStores, since: graphSince)
                 
-                self.graphicsContext.queueCommand(.drawText(updateErrorCountPayload))
+                // Latest numeric readings
+                async let latestValueCommands = try latestValueCommands(for: dataStores)
+                
+                // I/O error count
+                async let errorCountCommand = updateErrorCountCommand(count: self.ioErrorCount)
                 
                 // Finally:
+                try await self.graphicsContext.queueCommands(graphCommands + latestValueCommands + [errorCountCommand])
                 self.graphicsContext.render()
                 
                 do {
@@ -161,11 +122,85 @@ public class Coordinator<T: SensorOutput> {
                     self.ioErrorCount += 1
                     print("Display update failed: \(error.localizedDescription)")
                 }
+                
                 try await Task.sleep(for: .seconds(screenUpdateInterval))
                 
                 currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
             }
         }
+    }
+    
+    private func colorFor(dataStore: HybridDataStore<T>) -> Color24 {
+        let graphColor: Color24
+        switch dataStore.associatedOutputType {
+            case .temperature:
+                switch dataStore.associatedSensor.location {
+                    case .indoor:
+                        graphColor = .red
+                    case .outdoor:
+                        graphColor = .blue
+                }
+            case .barometricPressure:
+                graphColor = .yellow
+            case .humidity:
+                graphColor = .gray
+        }
+        
+        return graphColor
+    }
+    
+    private func graphCommands(for dataStores: Dictionary<String, HybridDataStore<T>>.Values, since: Since) async throws -> [GraphicsCommand] {
+        
+        var commands: [GraphicsCommand] = []
+                
+        for dataStore in dataStores {
+            
+            let readings = try await dataStore.retrieve(since: since.date)
+            
+            if let normalizedPoints = normalizedPointsForGraph(since: since, readings: readings) {
+                let graphCommand = drawCommandForGraph(
+                    color: colorFor(dataStore: dataStore),
+                    normalizedPoints: normalizedPoints
+                        .sorted(by: { $0.x > $1.x })
+                        .decimate(into: graphicsWidth)
+                )
+                
+                commands.append(graphCommand)
+            }
+        }
+        
+        return commands
+    }
+    
+    private func latestValueCommands(for dataStores: Dictionary<String, HybridDataStore<T>>.Values) async throws -> [GraphicsCommand] {
+        
+        var commands: [GraphicsCommand] = []
+        
+        for (index, dataStore) in dataStores.enumerated() {
+            
+            // Numeric displays
+            if let reading = await dataStore.retrieveLatest() {
+                
+                // Reading value
+                let readingValuePayload = DrawTextPayload(string: reading.output.stringValue,
+                                                             point: .init(0.05, 0.26 * Double(index)),
+                                                             font: .init(.system, size: 0.085),
+                                                             color: colorFor(dataStore: dataStore))
+                
+                commands.append(.drawText(readingValuePayload))
+            }
+        }
+        
+        return commands
+    }
+    
+    private func updateErrorCountCommand(count: Int) async -> GraphicsCommand {
+        let updateErrorCountPayload = DrawTextPayload(string: "\(count)",
+                                                      point: .init(0.8, 0.05),
+                                                      font: .init(.system, size: 0.05),
+                                                      color: .gray)
+        
+        return .drawText(updateErrorCountPayload)
     }
     
     private func drawCommandForGraph(color: Color24, normalizedPoints: [Point]) -> GraphicsCommand {
