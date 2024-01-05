@@ -21,7 +21,7 @@ public class Coordinator<T: SensorOutput> {
     public init(sensors: [AnySensor<T>], display: Display) throws {
         self.sensors = sensors
         
-        // Always want out logical graphics to be landscape
+        // We always want our logical graphics to be landscape
         let graphicsResolution: Size = display.aspect == .landscape ? Size(width: display.resolution.width, height: display.resolution.height) : Size(width: display.resolution.height, height: display.resolution.width)
         
         self.graphicsContext = GraphicsContext(size: .init(width: graphicsResolution.width, height: graphicsResolution.height))
