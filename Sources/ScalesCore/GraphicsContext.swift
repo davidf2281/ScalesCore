@@ -29,7 +29,7 @@ public class GraphicsContext {
                     }
                     
                     // Keep text aspect ratio constant by scaling to the inverse of buffer aspect ratio
-                    let screenAspectInverse = Double(self.size.width) / Double(self.size.height)
+                    let screenAspectInverse = Double(self.size.height) / Double(self.size.width)
                     for line in lines.scaledNonuniform(scaleX: screenAspectInverse, scaleY: 1.0) {
                         line.draw(width: size.width, height: size.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
                     }
