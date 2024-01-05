@@ -60,8 +60,8 @@ public struct System: Typeface {
         
         // TODO: Optimize this double-scaling out
         return allLines
-            .scaled(by: Self.scaleToNormalize)
-            .scaled(by: size)
+            .scaledUniform(by: Self.scaleToNormalize)
+            .scaledUniform(by: size)
     }
     
     struct Glyph {
@@ -226,9 +226,15 @@ extension Array where Element == Line {
         }
     }
     
-    func scaled(by scale: Double) -> Self {
+    func scaledUniform(by scale: Double) -> Self {
         self.map {
             Line($0.start.x * scale, $0.start.y * scale, $0.end.x * scale, $0.end.y * scale)
+        }
+    }
+    
+    func scaledNonuniform(scaleX: Double, scaleY: Double) -> Self {
+        self.map {
+            Line($0.start.x * scaleX, $0.start.y * scaleY, $0.end.x * scaleX, $0.end.y * scaleY)
         }
     }
 }
