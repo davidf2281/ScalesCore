@@ -230,13 +230,14 @@ public class Coordinator<T: SensorOutput> {
     
     private func normalizedPointsForGraph<U>(since: Since, readings: [AnyStorableReading<U>]) -> [Point]? {
         
-        guard readings.isNotEmpty else {
+        guard
+            let minTimestamp = readings.min(by: { $1.timestamp > $0.timestamp })?.timestamp,
+            let maxOutput = readings.max(by: { $1.output.floatValue > $0.output.floatValue })?.output.floatValue,
+            let minOutput = readings.min(by: { $1.output.floatValue > $0.output.floatValue })?.output.floatValue
+        else {
             return nil
         }
         
-        let minTimestamp = readings.min(by: { $1.timestamp > $0.timestamp })!.timestamp
-        let maxOutput = readings.max(by: { $1.output.floatValue > $0.output.floatValue })!.output.floatValue
-        let minOutput = readings.min(by: { $1.output.floatValue > $0.output.floatValue })!.output.floatValue
         let range = abs(minOutput - maxOutput)
         let zeroOffset = minOutput
         
