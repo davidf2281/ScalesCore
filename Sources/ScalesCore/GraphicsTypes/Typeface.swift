@@ -107,9 +107,9 @@ public struct System: Typeface {
                     
                 case .one:
                         .init(name: self,
-                              lines: [Line(1, 0, 3, 0),
-                                      Line(2, 0, 2, 5),
-                                      Line(2, 5, 1, 4)])
+                              lines: [Line(0, 0, 2, 0),
+                                      Line(1, 0, 1, 5),
+                                      Line(1, 5, 0, 4)])
                     
                     
                 case .two:
