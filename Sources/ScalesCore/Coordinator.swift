@@ -56,7 +56,12 @@ public class Coordinator<T: SensorOutput> {
     }
     
     public func buttonPressed() {
+        
         currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
+        
+        Task {
+            try await self.updateDisplay()
+        }
     }
     
     private func startSensorMonitoring() {
