@@ -1,7 +1,7 @@
 
 import Foundation
 
-extension TimeInterval {
+public extension TimeInterval {
     
     static var oneSecond: Self {
         1.0

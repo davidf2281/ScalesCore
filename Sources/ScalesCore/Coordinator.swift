@@ -16,7 +16,8 @@ public class Coordinator<T: SensorOutput> {
     private let graphicsHeight: Int
     private let flushInterval: TimeInterval = .oneHour
     private let graphSinces: [Since] = [.oneHourAgo, .twentyFourHoursAgo, .oneWeekAgo, .oneMonthAgo]
-    private let screenUpdateInterval: TimeInterval = 10.0
+    private let screenUpdateInterval: TimeInterval = 2.0
+    private var displayUpdatesPaused = false
     
     public init(sensors: [AnySensor<T>], display: Display) throws {
         self.sensors = sensors
@@ -51,6 +52,17 @@ public class Coordinator<T: SensorOutput> {
             return .success(())
         } else {
             return .failure(FlushToDiskError(errorDescriptions: errorDescriptions))
+        }
+    }
+    
+    public func buttonPressed() {
+        self.pauseDisplayRotation()
+    }
+    
+    private func pauseDisplayRotation(for interval: TimeInterval = .tenMinutes) {
+        displayUpdatesPaused = true
+        _ = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+            self?.displayUpdatesPaused = false
         }
     }
     
@@ -135,7 +147,9 @@ public class Coordinator<T: SensorOutput> {
                 
                 try await Task.sleep(for: .seconds(screenUpdateInterval))
                 
-                currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
+                if !self.displayUpdatesPaused {
+                    currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
+                }
             }
         }
     }
