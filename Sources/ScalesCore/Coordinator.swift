@@ -56,14 +56,7 @@ public class Coordinator<T: SensorOutput> {
     }
     
     public func buttonPressed() {
-        self.pauseDisplayRotation()
-    }
-    
-    private func pauseDisplayRotation(for interval: TimeInterval = .tenMinutes) {
-        displayUpdatesPaused = true
-        _ = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
-            self?.displayUpdatesPaused = false
-        }
+        currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
     }
     
     private func startSensorMonitoring() {
@@ -118,39 +111,39 @@ public class Coordinator<T: SensorOutput> {
             guard let self else { return }
 
             while(true) {
-                
-                let dataStores = self.readingStores.values
-                
-                // Graph
-                let graphSince = graphSinces[currentSinceIndex]
-                async let graphCommands = try graphCommands(for: dataStores, since: graphSince)
-                
-                // Latest numeric readings
-                async let latestValueCommands = try latestValueCommands(for: dataStores)
-                
-                // I/O error count
-                async let errorCountCommand = updateErrorCountCommand(count: self.ioErrorCount)
-                
-                // Finally:
-                try await self.graphicsContext.queueCommands(graphCommands + latestValueCommands + [errorCountCommand])
-                self.graphicsContext.render()
-                
-                let shouldSwapWidthForHeight = (self.display.aspect == .portrait)
-                
-                do {
-                    let frameBuffer = shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
-                    try await self.display.showFrame(frameBuffer)
-                } catch {
-                    self.ioErrorCount += 1
-                    print("Display update failed: \(error.localizedDescription)")
-                }
-                
+                try await updateDisplay()
                 try await Task.sleep(for: .seconds(screenUpdateInterval))
-                
-                if !self.displayUpdatesPaused {
-                    currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
-                }
             }
+        }
+    }
+    
+    private func updateDisplay() async throws {
+        
+        let dataStores = self.readingStores.values
+        
+        // Graph
+        let graphSince = graphSinces[currentSinceIndex]
+        async let graphCommands = try graphCommands(for: dataStores, since: graphSince)
+        
+        // Latest numeric readings
+        async let latestValueCommands = try latestValueCommands(for: dataStores)
+        
+        // I/O error count
+        async let errorCountCommand = updateErrorCountCommand(count: self.ioErrorCount)
+        
+        // Finally:
+        try await self.graphicsContext.queueCommands(graphCommands + latestValueCommands + [errorCountCommand])
+        
+        self.graphicsContext.render()
+        
+        let shouldSwapWidthForHeight = (self.display.aspect == .portrait)
+        
+        do {
+            let frameBuffer = shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
+            try await self.display.showFrame(frameBuffer)
+        } catch {
+            self.ioErrorCount += 1
+            print("Display update failed: \(error.localizedDescription)")
         }
     }
     
