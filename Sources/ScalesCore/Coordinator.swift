@@ -19,6 +19,7 @@ public class Coordinator<T: SensorOutput> {
     private let screenUpdateInterval: TimeInterval = 2.0
     private var screenUpdateTask: Task<Void, Error>?
     private let logger = Logger(name: "Coordinator")
+    private let buttonHandler: any ButtonHandler
     
     public init(sensors: [AnySensor<T>], display: Display, buttonHandler: ButtonHandler) throws {
         self.sensors = sensors
@@ -30,9 +31,10 @@ public class Coordinator<T: SensorOutput> {
         self.graphicsWidth = graphicsResolution.width
         self.graphicsHeight = graphicsResolution.height
         self.display = display
-        
+        self.buttonHandler = buttonHandler
         startSensorMonitoring()
         startDisplayUpdates()
+        startButtonMonitoring()
         
         logger.log("Coordinator init done.")
     }
@@ -58,11 +60,19 @@ public class Coordinator<T: SensorOutput> {
         }
     }
     
-    public func buttonPressed() async throws {
-        self.screenUpdateTask?.cancel()
-        currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
-        try await self.updateDisplay()
-        self.startDisplayUpdates()
+    private func startButtonMonitoring() {
+        Task {
+            for await _ in buttonHandler.buttonPresses {
+                self.screenUpdateTask?.cancel()
+                currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
+                do {
+                    try await self.updateDisplay()
+                    self.startDisplayUpdates()
+                } catch {
+                    logger.log("Failed in startButtonMonitoring")
+                }
+            }
+        }
     }
     
     private func startSensorMonitoring() {
