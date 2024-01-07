@@ -33,7 +33,7 @@ public class Coordinator<T: SensorOutput> {
         self.display = display
         self.buttonHandler = buttonHandler
         startSensorMonitoring()
-        startDisplayUpdates()
+        startScreenUpdates()
         startButtonMonitoring()
         
         logger.log("Coordinator init done.")
@@ -67,7 +67,7 @@ public class Coordinator<T: SensorOutput> {
                 currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
                 do {
                     try await self.updateDisplay()
-                    self.startDisplayUpdates()
+                    self.startScreenUpdates()
                 } catch {
                     logger.log("Failed in startButtonMonitoring")
                 }
@@ -120,7 +120,7 @@ public class Coordinator<T: SensorOutput> {
         return reading.outputType.toString + "_" + reading.sensorLocation.toString + "_" + reading.sensorID
     }
     
-    private func startDisplayUpdates() {
+    private func startScreenUpdates() {
         
         self.screenUpdateTask = Task { [weak self] () -> () in
             
@@ -130,6 +130,7 @@ public class Coordinator<T: SensorOutput> {
                 do {
                     try Task.checkCancellation()
                     try await updateDisplay()
+                    try Task.checkCancellation()
                     try await Task.sleep(for: .seconds(screenUpdateInterval))
                 } catch {
                     logger.log("Display update error: \(error.localizedDescription)")
