@@ -1,5 +1,5 @@
 
-public class GraphicsContext {
+public actor GraphicsContext {
     
     private var commandQueue: [GraphicsCommand] = []
     public private(set) var frameBuffer: FrameBuffer
@@ -17,11 +17,11 @@ public class GraphicsContext {
         self.commandQueue += commands
     }
     
-    public func render() throws {
+    public func render() async throws {
         
         try Task.checkCancellation()
         
-        self.frameBuffer.clear()
+        await self.frameBuffer.clear()
         
         for command in commandQueue {
             switch command {
@@ -33,78 +33,16 @@ public class GraphicsContext {
                     // Keep text aspect ratio constant by scaling to the inverse of buffer aspect ratio
                     let screenAspectInverse = Double(self.size.height) / Double(self.size.width)
                     for line in lines.scaledNonuniform(scaleX: screenAspectInverse, scaleY: 1.0) {
-                        line.draw(width: size.width, height: size.height, color: payload.color, algorithm: .bresenham, buffer: &self.frameBuffer)
+                        await self.frameBuffer.drawLine(line, width: size.width, height: size.height, color: payload.color, algorithm: .bresenham)
                     }
                     
                 case .drawLines(let payload):
                     for line in payload.lines {
-                        line.draw(width: size.width, height: size.height, color: payload.color, algorithm: payload.algorithm, buffer: &self.frameBuffer)
+                        await self.frameBuffer.drawLine(line, width: size.width, height: size.height, color: payload.color, algorithm: .bresenham)
                     }
             }
         }
                 
         self.commandQueue = []
-    }
-}
-
-private extension Line {
-    
-    func draw(width: Int, height: Int, color: Color24, algorithm: Line.Algorithm, buffer: inout FrameBuffer) {
-        switch algorithm {
-            case .naive:
-                drawNaive(width: width, height: height, color: color, buffer: &buffer)
-                
-            case .bresenham:
-                drawBresenham(width: width, height: height, color: color, buffer: &buffer)
-        }
-    }
-    
-    private func drawNaive(width: Int, height: Int, color: Color24, buffer: inout FrameBuffer) {
-        assert(false)
-        let x1 = Int(self.start.x * Double(width - 1))
-        let y1 = Int(self.start.y * Double(height - 1))
-
-        let x2 = Int(self.end.x * Double(width - 1))
-        let y2 = Int(self.end.y * Double(height - 1))
-        
-        let dx = x2 - x1
-        let dy = y2 - y1
-        
-        for x in x1...x2 {
-            let y = y1 + dy * (x - x1) / dx
-            buffer.plotPixel(x, y, color: color)
-        }
-    }
-    
-    private func drawBresenham(width: Int, height: Int, color: Color24, buffer: inout FrameBuffer) {
-        
-        /* Algo lifted straight from wikipedia: https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm */
-        
-        var x0 = Int(self.start.x * Double(width - 1))
-        var y0 = Int(self.start.y * Double(height - 1))
-
-        let x1 = Int(self.end.x * Double(width - 1))
-        let y1 = Int(self.end.y * Double(height - 1))
-        
-        let dx = abs(x1 - x0)
-        let sx = x0 < x1 ? 1 : -1
-        let dy = -abs(y1 - y0)
-        let sy = y0 < y1 ? 1 : -1
-        var error = dx + dy
-        while true {
-            buffer.plotPixel(x0, y0, color: color)
-            if x0 == x1 && y0 == y1 { break }
-            let e2 = 2 * error
-            if e2 >= dy {
-                if x0 == x1 { break }
-                error = error + dy
-                x0 = x0 + sx
-            }
-            if e2 <= dx {
-                if y0 == y1 { break }
-                error = error + dx
-                y0 = y0 + sy
-            }
-        }
     }
 }

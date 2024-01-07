@@ -151,12 +151,12 @@ public class Coordinator<T: SensorOutput> {
         // Finally:
         try await self.graphicsContext.queueCommands(graphCommands + latestValueCommands + [errorCountCommand])
         
-        try self.graphicsContext.render()
+        try await self.graphicsContext.render()
         
         let shouldSwapWidthForHeight = (self.display.aspect == .portrait)
                 
         do {
-            let frameBuffer = try shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
+            let frameBuffer = try await shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
             try await self.display.showFrame(frameBuffer)
         } catch {
             self.ioErrorCount += 1
