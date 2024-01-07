@@ -17,7 +17,8 @@ public class Coordinator<T: SensorOutput> {
     private let flushInterval: TimeInterval = .oneHour
     private let graphSinces: [Since] = [.oneHourAgo, .twentyFourHoursAgo, .oneWeekAgo, .oneMonthAgo]
     private let screenUpdateInterval: TimeInterval = 2.0
-    private var displayUpdatesPaused = false
+    private var screenUpdateTask: Task<Void, Error>?
+    private let logger = Logger(name: "Coordinator")
     
     public init(sensors: [AnySensor<T>], display: Display) throws {
         self.sensors = sensors
@@ -32,6 +33,8 @@ public class Coordinator<T: SensorOutput> {
         
         startSensorMonitoring()
         startDisplayUpdates()
+        
+        logger.log("Coordinator init done.")
     }
     
     public struct FlushToDiskError: Error {
@@ -57,10 +60,13 @@ public class Coordinator<T: SensorOutput> {
     
     public func buttonPressed() {
         
+        self.screenUpdateTask?.cancel()
+        
         currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
         
-        Task {
-            try await self.updateDisplay()
+        Task { [weak self] in
+            try await self?.updateDisplay()
+            self?.startDisplayUpdates()
         }
     }
     
@@ -111,13 +117,19 @@ public class Coordinator<T: SensorOutput> {
     
     private func startDisplayUpdates() {
         
-        Task { [weak self] in
+        self.screenUpdateTask = Task { [weak self] () -> () in
             
             guard let self else { return }
 
             while(true) {
-                try await updateDisplay()
-                try await Task.sleep(for: .seconds(screenUpdateInterval))
+                do {
+                    try Task.checkCancellation()
+                    try await updateDisplay()
+                    try await Task.sleep(for: .seconds(screenUpdateInterval))
+                } catch {
+                    logger.log("Display update error: \(error.localizedDescription)")
+                    throw error
+                }
             }
         }
     }
@@ -139,16 +151,16 @@ public class Coordinator<T: SensorOutput> {
         // Finally:
         try await self.graphicsContext.queueCommands(graphCommands + latestValueCommands + [errorCountCommand])
         
-        self.graphicsContext.render()
+        try self.graphicsContext.render()
         
         let shouldSwapWidthForHeight = (self.display.aspect == .portrait)
-        
+                
         do {
-            let frameBuffer = shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
+            let frameBuffer = try shouldSwapWidthForHeight ? self.graphicsContext.frameBuffer.swappedWidthForHeight : self.graphicsContext.frameBuffer
             try await self.display.showFrame(frameBuffer)
         } catch {
             self.ioErrorCount += 1
-            print("Display update failed: \(error.localizedDescription)")
+            throw error
         }
     }
     
@@ -172,6 +184,8 @@ public class Coordinator<T: SensorOutput> {
     }
     
     private func graphCommands(for dataStores: Dictionary<String, HybridDataStore<T>>.Values, since: Since) async throws -> [GraphicsCommand] {
+        
+        try Task.checkCancellation()
         
         var commands: [GraphicsCommand] = []
                 

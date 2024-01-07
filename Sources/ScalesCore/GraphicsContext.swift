@@ -17,7 +17,9 @@ public class GraphicsContext {
         self.commandQueue += commands
     }
     
-    public func render() {
+    public func render() throws {
+        
+        try Task.checkCancellation()
         
         self.frameBuffer.clear()
         
