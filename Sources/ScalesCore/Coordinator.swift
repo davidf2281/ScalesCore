@@ -20,7 +20,7 @@ public class Coordinator<T: SensorOutput> {
     private var screenUpdateTask: Task<Void, Error>?
     private let logger = Logger(name: "Coordinator")
     
-    public init(sensors: [AnySensor<T>], display: Display) throws {
+    public init(sensors: [AnySensor<T>], display: Display, buttonHandler: ButtonHandler) throws {
         self.sensors = sensors
         
         // We always want our logical graphics to be landscape

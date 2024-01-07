@@ -1,10 +1,10 @@
 
 import Foundation
 
-protocol ButtonHandler {
+public protocol ButtonHandler {
     var buttonPresses: AsyncStream<ButtonPress>  { get }
 }
 
-struct ButtonPress {
+public struct ButtonPress {
     
 }
