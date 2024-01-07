@@ -1,6 +1,5 @@
 
 import Foundation
-import OSLog
 
 public class Coordinator<T: SensorOutput> {
     
