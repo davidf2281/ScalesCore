@@ -16,7 +16,7 @@ public class Coordinator<T: SensorOutput> {
     private let graphicsHeight: Int
     private let flushInterval: TimeInterval = .oneHour
     private let graphSinces: [Since] = [.oneHourAgo, .twentyFourHoursAgo, .oneWeekAgo, .oneMonthAgo]
-    private let screenUpdateInterval: TimeInterval = 2.0
+    private let screenUpdateInterval: TimeInterval = .oneMinute
     private var screenUpdateTask: Task<Void, Error>?
     private let logger = Logger(name: "Coordinator")
     private let buttonHandler: any ButtonHandler
