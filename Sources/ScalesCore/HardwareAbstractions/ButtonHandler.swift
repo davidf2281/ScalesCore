@@ -6,5 +6,5 @@ public protocol ButtonHandler {
 }
 
 public struct ButtonPress {
-    
+    public init(){}
 }
