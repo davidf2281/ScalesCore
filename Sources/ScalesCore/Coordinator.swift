@@ -63,6 +63,7 @@ public class Coordinator<T: SensorOutput> {
     private func startButtonMonitoring() {
         Task {
             for await _ in buttonHandler.buttonPresses {
+                logger.log("Button press")
                 self.screenUpdateTask?.cancel()
                 currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
                 do {
