@@ -1,11 +1,15 @@
 
 import Foundation
 
-struct Logger {
+public struct Logger {
     
-    let name: String
+    private let name: String
     
-    func log(_ message: String) {
+    public init(name: String) {
+        self.name = name
+    }
+    
+    public func log(_ message: String) {
         let now = Date()
         print("\(self.name) \(now): \(message)")
     }
