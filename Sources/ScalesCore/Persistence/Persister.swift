@@ -21,20 +21,18 @@ enum PersisterError: Error {
 actor Persister<T: PersistableItem> {
     
     private let dataDirectory: URL
-    private let fileDataProvider = CachingFileDataProvider()
+    private let itemsProvider = CachingPersistedItemsProvider<T>()
     public init(storeName: String) throws {
         
         let fileManager = FileManager.default
                 
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             throw PersisterError.dataDirectoryLocation
         }
         
         self.dataDirectory = documentsURL
             .appendingPathComponent("PersistedData")
             .appendingPathComponent(storeName)
-                        
-        try fileManager.createDirectory(at: dataDirectory, withIntermediateDirectories: true)
     }
     
     func persist(_ persistables: [T]) async throws {
@@ -98,10 +96,8 @@ actor Persister<T: PersistableItem> {
             }
             
             // Get data from the files
-            let decoder = JSONDecoder()
             for fileURL in filteredFileURLs {
-                let jsonData = try fileDataProvider.dataForFileURL(fileURL)
-                let persistedItems = try decoder.decode([T].self, from: jsonData)
+                let persistedItems = try itemsProvider.items(for: fileURL)
                 
                 // Get values within our desired timestamp range
                 matchingItems += persistedItems.filter { searchRange.contains($0.timestamp) }
@@ -110,25 +106,24 @@ actor Persister<T: PersistableItem> {
         
         return matchingItems
     }
-    
-   
 }
 
-class CachingFileDataProvider {
+class CachingPersistedItemsProvider<T: PersistableItem> {
     
-    private var cache: [URL : Data] = [:]
-    private let logger = Logger(name: "CachingFileDataProvider")
-
-    func dataForFileURL(_ fileURL: URL) throws -> Data {
+    private let decoder = JSONDecoder()
+    private var cache: [URL: [T]] = [:]
+    private let logger = Logger(name: "CachingJSONPersistedItemsProvider")
+    
+    func items(for fileURL: URL) throws -> [T] {
         
-        if let cachedData = cache[fileURL] {
-            return cachedData
+        if let cachedJSONData = cache[fileURL] {
+            return cachedJSONData
         }
         
-        logger.log("Hitting disk: \(fileURL)")
-        let data = try Data(contentsOf: fileURL)
-        cache[fileURL] = data
-        return data
+        logger.log("Hitting items cache")
+        let jsonData = try Data(contentsOf: fileURL)
+        let persistedItems = try decoder.decode([T].self, from: jsonData)
+        return persistedItems
     }
 }
 
