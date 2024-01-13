@@ -120,7 +120,6 @@ class CachingPersistedItemsProvider<T: PersistableItem> {
             return cachedJSONData
         }
         
-        logger.log("Hitting items cache")
         let jsonData = try Data(contentsOf: fileURL)
         let persistedItems = try decoder.decode([T].self, from: jsonData)
         cache[fileURL] = persistedItems

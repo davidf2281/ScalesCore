@@ -126,19 +126,15 @@ public class Coordinator<T: SensorOutput> {
 
             while(true) {
                 do {
-                    if Task.isCancelled {
-                        return
-                    }
-                    
+                    try Task.checkCancellation()
                     try await updateDisplay()
-                    
-                    if Task.isCancelled {
-                        return
-                    }
-                    
+                    try Task.checkCancellation()
                     try await Task.sleep(for: .seconds(screenUpdateInterval))
                 } catch {
-                    logger.log("Display update error: \(error.localizedDescription)")
+                    let shouldLogError = !(error is CancellationError) // We don't care about Task cancellation errors
+                    if shouldLogError {
+                        logger.log("Display update error: \(error.localizedDescription)")
+                    }
                     throw error
                 }
             }
