@@ -174,6 +174,7 @@ public class Coordinator<T: SensorOutput> {
     private func colorFor(dataStore: HybridDataStore<T>) -> Color24 {
         let graphColor: Color24
         switch dataStore.associatedOutputType {
+                
             case .temperature:
                 switch dataStore.associatedSensor.location {
                     case .indoor:
@@ -181,10 +182,22 @@ public class Coordinator<T: SensorOutput> {
                     case .outdoor:
                         graphColor = .blue
                 }
+                
             case .barometricPressure:
-                graphColor = .yellow
+                switch dataStore.associatedSensor.location {
+                    case .indoor:
+                        graphColor = .yellow
+                    case .outdoor:
+                        graphColor = .green
+                }
+                
             case .humidity:
-                graphColor = .gray
+                switch dataStore.associatedSensor.location {
+                    case .indoor:
+                        graphColor = .purple
+                    case .outdoor:
+                        graphColor = .cyan
+                }
         }
         
         return graphColor
