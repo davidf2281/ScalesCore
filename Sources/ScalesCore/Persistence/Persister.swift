@@ -22,7 +22,6 @@ actor Persister<T: PersistableItem> {
     
     private let dataDirectory: URL
     private let fileDataProvider = CachingFileDataProvider()
-    
     public init(storeName: String) throws {
         
         let fileManager = FileManager.default
@@ -118,13 +117,15 @@ actor Persister<T: PersistableItem> {
 class CachingFileDataProvider {
     
     private var cache: [URL : Data] = [:]
-    
+    private let logger = Logger(name: "CachingFileDataProvider")
+
     func dataForFileURL(_ fileURL: URL) throws -> Data {
         
         if let cachedData = cache[fileURL] {
             return cachedData
         }
         
+        logger.log("Hitting disk: \(fileURL)")
         let data = try Data(contentsOf: fileURL)
         cache[fileURL] = data
         return data
