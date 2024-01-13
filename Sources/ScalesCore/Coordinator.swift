@@ -129,8 +129,8 @@ public class Coordinator<T: SensorOutput> {
                     if Task.isCancelled {
                         return
                     }
+                    
                     try await updateDisplay()
-                    try Task.checkCancellation()
                     try await Task.sleep(for: .seconds(screenUpdateInterval))
                 } catch {
                     logger.log("Display update error: \(error.localizedDescription)")
