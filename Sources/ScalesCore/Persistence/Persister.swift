@@ -21,6 +21,7 @@ enum PersisterError: Error {
 actor Persister<T: PersistableItem> {
     
     private let dataDirectory: URL
+    private let fileDataProvider = CachingFileDataProvider()
     
     public init(storeName: String) throws {
         
@@ -100,7 +101,7 @@ actor Persister<T: PersistableItem> {
             // Get data from the files
             let decoder = JSONDecoder()
             for fileURL in filteredFileURLs {
-                let jsonData = try Data(contentsOf: fileURL)
+                let jsonData = try fileDataProvider.dataForFileURL(fileURL)
                 let persistedItems = try decoder.decode([T].self, from: jsonData)
                 
                 // Get values within our desired timestamp range
@@ -109,6 +110,24 @@ actor Persister<T: PersistableItem> {
         }
         
         return matchingItems
+    }
+    
+   
+}
+
+class CachingFileDataProvider {
+    
+    private var cache: [URL : Data] = [:]
+    
+    func dataForFileURL(_ fileURL: URL) throws -> Data {
+        
+        if let cachedData = cache[fileURL] {
+            return cachedData
+        }
+        
+        let data = try Data(contentsOf: fileURL)
+        cache[fileURL] = data
+        return data
     }
 }
 
