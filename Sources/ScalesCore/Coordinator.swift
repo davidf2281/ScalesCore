@@ -35,8 +35,6 @@ public class Coordinator<T: SensorOutput> {
         startSensorMonitoring()
         startScreenUpdates()
         startButtonMonitoring()
-        
-        logger.log("Coordinator init done.")
     }
     
     public struct FlushToDiskError: Error {
@@ -63,7 +61,6 @@ public class Coordinator<T: SensorOutput> {
     private func startButtonMonitoring() {
         Task {
             for await _ in buttonHandler.buttonPresses {
-                logger.log("Button press")
                 self.screenUpdateTask?.cancel()
                 currentSinceIndex = graphSinces.nextIndexWrapping(index: currentSinceIndex)
                 do {
@@ -129,7 +126,9 @@ public class Coordinator<T: SensorOutput> {
 
             while(true) {
                 do {
-                    try Task.checkCancellation()
+                    if Task.isCancelled {
+                        return
+                    }
                     try await updateDisplay()
                     try Task.checkCancellation()
                     try await Task.sleep(for: .seconds(screenUpdateInterval))
